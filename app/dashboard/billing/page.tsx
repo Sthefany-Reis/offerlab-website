@@ -1,8 +1,9 @@
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getSubscription } from '@/app/actions/subscription'
+import { getSubscription, getPayments } from '@/app/actions/subscription'
 import { PricingPlans } from '@/components/dashboard/pricing-plans'
+import { PaymentHistory } from '@/components/dashboard/payment-history'
 import { Card } from '@/components/ui/card'
 import { Sparkles } from 'lucide-react'
 
@@ -14,7 +15,7 @@ export default async function BillingPage() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) redirect('/sign-in')
 
-  const sub = await getSubscription()
+  const [sub, payments] = await Promise.all([getSubscription(), getPayments()])
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -47,6 +48,8 @@ export default async function BillingPage() {
         Payments are processed securely. You can cancel your subscription at any
         time from this page.
       </p>
+
+      <PaymentHistory payments={payments} />
     </div>
   )
 }

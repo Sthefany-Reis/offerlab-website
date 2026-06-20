@@ -130,11 +130,24 @@ export const usageEvents = pgTable('usage_events', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
+// Records each subscription charge so users can see their payment history.
+// `amount` is stored in cents.
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  userId: text('userId').notNull(),
+  amount: integer('amount').notNull(),
+  currency: text('currency').notNull().default('USD'),
+  description: text('description').notNull(),
+  status: text('status').notNull().default('paid'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
+
 export type CvReportRow = typeof cvReports.$inferSelect
 export type JobRow = typeof jobs.$inferSelect
 export type ApplicationRow = typeof applications.$inferSelect
 export type SubscriptionRow = typeof subscriptions.$inferSelect
 export type UsageEventRow = typeof usageEvents.$inferSelect
+export type PaymentRow = typeof payments.$inferSelect
 
 // --- Reference (unused) ----------------------------------------------------
 // Add your app tables below. Always include a plain `userId` column so queries

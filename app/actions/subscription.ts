@@ -2,8 +2,13 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { subscriptions, cvReports, usageEvents } from '@/lib/db/schema'
-import { and, eq, gte, sql } from 'drizzle-orm'
+import {
+  subscriptions,
+  cvReports,
+  usageEvents,
+  payments,
+} from '@/lib/db/schema'
+import { and, desc, eq, gte, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import {
@@ -11,6 +16,9 @@ import {
   FREE_WEEKLY_INTERVIEW_QUESTIONS,
   FREE_WEEKLY_SPECIALIST_QUESTIONS,
 } from '@/lib/plan'
+
+// Monthly Pro price, in cents.
+const PRO_PRICE_CENTS = 1200
 
 async function getUserId() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -177,9 +185,47 @@ export async function activateSubscription(): Promise<SubscriptionStatus> {
       },
     })
 
+  // Record the charge for payment history. In a real deployment this is driven
+  // by the payment processor's webhook; here we log it on successful checkout.
+  await db.insert(payments).values({
+    userId,
+    amount: PRO_PRICE_CENTS,
+    currency: 'USD',
+    description: 'OfferLab Pro — Monthly',
+    status: 'paid',
+  })
+
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/billing')
   return { plan: 'pro', active: true, currentPeriodEnd: periodEnd.toISOString() }
+}
+
+export type Payment = {
+  id: number
+  amount: number
+  currency: string
+  description: string
+  status: string
+  createdAt: string
+}
+
+// Returns the current user's payment history, newest first.
+export async function getPayments(): Promise<Payment[]> {
+  const userId = await getUserId()
+  const rows = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.userId, userId))
+    .orderBy(desc(payments.createdAt))
+
+  return rows.map((r) => ({
+    id: r.id,
+    amount: r.amount,
+    currency: r.currency,
+    description: r.description,
+    status: r.status,
+    createdAt: r.createdAt.toISOString(),
+  }))
 }
 
 // Cancels the user's subscription (downgrades to free immediately).
