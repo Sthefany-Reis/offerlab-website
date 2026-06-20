@@ -2,11 +2,15 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { subscriptions, cvReports } from '@/lib/db/schema'
+import { subscriptions, cvReports, usageEvents } from '@/lib/db/schema'
 import { and, eq, gte, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { FREE_MONTHLY_ANALYSES } from '@/lib/plan'
+import {
+  FREE_MONTHLY_ANALYSES,
+  FREE_WEEKLY_INTERVIEW_QUESTIONS,
+  FREE_WEEKLY_SPECIALIST_QUESTIONS,
+} from '@/lib/plan'
 
 async function getUserId() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -17,6 +21,62 @@ async function getUserId() {
 function startOfMonth() {
   const now = new Date()
   return new Date(now.getFullYear(), now.getMonth(), 1)
+}
+
+// Start of the current week (Monday 00:00 local time).
+function startOfWeek() {
+  const now = new Date()
+  const day = (now.getDay() + 6) % 7 // 0 = Monday
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day)
+  return monday
+}
+
+// Metered weekly actions and their free-plan limits.
+export type MeteredKind = 'interview' | 'specialist'
+
+const WEEKLY_LIMITS: Record<MeteredKind, number> = {
+  interview: FREE_WEEKLY_INTERVIEW_QUESTIONS,
+  specialist: FREE_WEEKLY_SPECIALIST_QUESTIONS,
+}
+
+export type WeeklyUsage = {
+  unlimited: boolean
+  used: number
+  limit: number
+  remaining: number
+}
+
+// Counts how many times the user has used a metered action this week and
+// whether they can use it again. Pro users are unlimited.
+export async function getWeeklyUsage(kind: MeteredKind): Promise<WeeklyUsage> {
+  const userId = await getUserId()
+  const sub = await getSubscription()
+  const limit = WEEKLY_LIMITS[kind]
+
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(usageEvents)
+    .where(
+      and(
+        eq(usageEvents.userId, userId),
+        eq(usageEvents.kind, kind),
+        gte(usageEvents.createdAt, startOfWeek()),
+      ),
+    )
+
+  const used = row?.count ?? 0
+
+  if (sub.active) {
+    return { unlimited: true, used, limit: Infinity, remaining: Infinity }
+  }
+
+  return { unlimited: false, used, limit, remaining: Math.max(0, limit - used) }
+}
+
+// Records one usage event for a metered action.
+export async function recordUsage(kind: MeteredKind) {
+  const userId = await getUserId()
+  await db.insert(usageEvents).values({ userId, kind })
 }
 
 export type AnalysisUsage = {

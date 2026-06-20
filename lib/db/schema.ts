@@ -95,13 +95,16 @@ export const jobs = pgTable('jobs', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
-// Tracks a user's application to a job, with a status pipeline.
+// Tracks a user's application to a job, with a status pipeline. Stores the CV
+// the user submitted with the application and an optional cover letter.
 export const applications = pgTable('applications', {
   id: serial('id').primaryKey(),
   userId: text('userId').notNull(),
   jobId: integer('jobId').notNull(),
   status: text('status').notNull().default('applied'),
   note: text('note'),
+  cvText: text('cvText'),
+  coverLetter: text('coverLetter'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
@@ -117,10 +120,21 @@ export const subscriptions = pgTable('subscriptions', {
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
 
+// Records one row each time a user consumes a metered action (e.g. generating
+// an interview question or asking a specialist). Counted per week to enforce
+// free-plan limits.
+export const usageEvents = pgTable('usage_events', {
+  id: serial('id').primaryKey(),
+  userId: text('userId').notNull(),
+  kind: text('kind').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
+
 export type CvReportRow = typeof cvReports.$inferSelect
 export type JobRow = typeof jobs.$inferSelect
 export type ApplicationRow = typeof applications.$inferSelect
 export type SubscriptionRow = typeof subscriptions.$inferSelect
+export type UsageEventRow = typeof usageEvents.$inferSelect
 
 // --- Reference (unused) ----------------------------------------------------
 // Add your app tables below. Always include a plain `userId` column so queries
