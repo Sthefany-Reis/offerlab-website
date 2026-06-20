@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { cancelSubscription } from '@/app/actions/subscription'
 
 const FREE_FEATURES = [
-  'CV analysis & match scores',
-  'Skill-gap and dream-role roadmap',
+  '3 CV analyses per month',
+  'Match scores & skill-gap roadmap',
   'AI job search',
   'Application tracking',
   'Interview practice',
@@ -19,9 +19,10 @@ const FREE_FEATURES = [
 
 const PRO_FEATURES = [
   'Everything in Free',
+  'Unlimited CV analyses',
+  'CV regeneration (ATS-friendly rewrite)',
   'AI cover letter generator',
   'AI cover letter rating & feedback',
-  'Unlimited regenerations',
   'Priority AI responses',
 ]
 

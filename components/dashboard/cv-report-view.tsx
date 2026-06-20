@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { regenerateCv, updateDesiredRole } from '@/app/actions/cv-report'
 import type { CvReport, DesiredRolePlan } from '@/lib/cv-report-schema'
@@ -26,6 +27,7 @@ import {
   GraduationCap,
   Info,
   Loader2,
+  Lock,
   Pencil,
   PenLine,
   RefreshCw,
@@ -544,23 +546,34 @@ export function CvReportView({
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary/60 p-4">
               <p className="text-sm">
-                {report.cvQuality.needsRedesign
-                  ? 'We think your CV could be holding you back. Regenerate a cleaner version from your information.'
-                  : 'Your CV is solid. You can still regenerate a polished version if you like.'}
+                {!isPro
+                  ? 'Regenerating a clean, ATS-friendly CV from your information is a Pro feature.'
+                  : report.cvQuality.needsRedesign
+                    ? 'We think your CV could be holding you back. Regenerate a cleaner version from your information.'
+                    : 'Your CV is solid. You can still regenerate a polished version if you like.'}
               </p>
-              <Button onClick={handleRegenerate} disabled={regenerating}>
-                {regenerating ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Regenerating...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="size-4" />
-                    Regenerate CV
-                  </>
-                )}
-              </Button>
+              {isPro ? (
+                <Button onClick={handleRegenerate} disabled={regenerating}>
+                  {regenerating ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="size-4" />
+                      Regenerate CV
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href="/dashboard/billing">
+                    <Lock className="size-4" />
+                    Upgrade to regenerate
+                  </Link>
+                </Button>
+              )}
             </div>
           </Card>
 

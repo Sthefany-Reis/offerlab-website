@@ -1,16 +1,18 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { analyzeCv } from '@/app/actions/cv-report'
+import type { AnalysisUsage } from '@/app/actions/subscription'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { FileUp, Loader2, Sparkles, FileText } from 'lucide-react'
+import { FileUp, Loader2, Sparkles, FileText, Lock, Zap } from 'lucide-react'
 
 const ACCEPTED = '.pdf,.docx,.doc,.txt,.png,.jpg,.jpeg'
 
@@ -26,9 +28,11 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
-export function CvAnalyze() {
+export function CvAnalyze({ usage }: { usage: AnalysisUsage }) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const limitReached = !usage.unlimited && usage.remaining <= 0
 
   const [cvText, setCvText] = useState('')
   const [desiredRole, setDesiredRole] = useState('')
@@ -73,6 +77,10 @@ export function CvAnalyze() {
   }
 
   async function handleAnalyze() {
+    if (limitReached) {
+      toast.error('You have reached your monthly analysis limit.')
+      return
+    }
     if (cvText.trim().length < 80) {
       toast.error('Please add your full CV text before analyzing.')
       return
@@ -91,6 +99,44 @@ export function CvAnalyze() {
 
   return (
     <Card className="p-6">
+      {/* Usage / plan banner */}
+      {usage.unlimited ? (
+        <div className="mb-5 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-4 py-2.5 text-sm text-accent-foreground">
+          <Zap className="size-4 shrink-0 text-accent" />
+          <span>
+            <span className="font-medium">Pro plan</span> — unlimited CV analyses.
+          </span>
+        </div>
+      ) : (
+        <div
+          className={`mb-5 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-4 py-2.5 text-sm ${
+            limitReached
+              ? 'border-destructive/30 bg-destructive/10 text-destructive'
+              : 'border-border bg-secondary/60 text-muted-foreground'
+          }`}
+        >
+          <span>
+            {limitReached ? (
+              <>You&apos;ve used all {usage.limit} free analyses this month.</>
+            ) : (
+              <>
+                <span className="font-medium text-foreground">
+                  {usage.remaining} of {usage.limit}
+                </span>{' '}
+                free analyses left this month.
+              </>
+            )}
+          </span>
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-1 font-medium text-accent underline-offset-2 hover:underline"
+          >
+            <Sparkles className="size-3.5" />
+            Upgrade for unlimited
+          </Link>
+        </div>
+      )}
+
       <div className="mb-5">
         <Label htmlFor="role" className="text-sm">
           The role you want next{' '}
@@ -188,19 +234,28 @@ export function CvAnalyze() {
             ? `${cvText.trim().length.toLocaleString()} characters`
             : 'Add your CV to get started'}
         </p>
-        <Button onClick={handleAnalyze} disabled={analyzing || extracting}>
-          {analyzing ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles className="size-4" />
-              Analyze my CV
-            </>
-          )}
-        </Button>
+        {limitReached ? (
+          <Button asChild>
+            <Link href="/dashboard/billing">
+              <Lock className="size-4" />
+              Upgrade to analyze
+            </Link>
+          </Button>
+        ) : (
+          <Button onClick={handleAnalyze} disabled={analyzing || extracting}>
+            {analyzing ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="size-4" />
+                Analyze my CV
+              </>
+            )}
+          </Button>
+        )}
       </div>
     </Card>
   )

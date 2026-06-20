@@ -2,15 +2,58 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { subscriptions } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { subscriptions, cvReports } from '@/lib/db/schema'
+import { and, eq, gte, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { FREE_MONTHLY_ANALYSES } from '@/lib/plan'
 
 async function getUserId() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) throw new Error('Unauthorized')
   return session.user.id
+}
+
+function startOfMonth() {
+  const now = new Date()
+  return new Date(now.getFullYear(), now.getMonth(), 1)
+}
+
+export type AnalysisUsage = {
+  unlimited: boolean
+  used: number
+  limit: number
+  remaining: number
+}
+
+// How many CV analyses the current user has run this month, and whether they
+// can run another. Pro users are unlimited; free users get FREE_MONTHLY_ANALYSES.
+export async function getAnalysisUsage(): Promise<AnalysisUsage> {
+  const userId = await getUserId()
+  const sub = await getSubscription()
+
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(cvReports)
+    .where(
+      and(
+        eq(cvReports.userId, userId),
+        gte(cvReports.createdAt, startOfMonth()),
+      ),
+    )
+
+  const used = row?.count ?? 0
+
+  if (sub.active) {
+    return { unlimited: true, used, limit: Infinity, remaining: Infinity }
+  }
+
+  return {
+    unlimited: false,
+    used,
+    limit: FREE_MONTHLY_ANALYSES,
+    remaining: Math.max(0, FREE_MONTHLY_ANALYSES - used),
+  }
 }
 
 export type SubscriptionStatus = {

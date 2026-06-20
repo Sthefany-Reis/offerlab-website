@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ import {
   UserRound,
   History,
   Sparkles,
+  Zap,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-logo'
 
@@ -44,12 +46,19 @@ const links = [
 export function DashboardNav({
   name,
   email,
+  plan,
+  analysesLeft,
+  analysesLimit,
 }: {
   name: string
   email: string
+  plan: 'free' | 'pro'
+  analysesLeft: number | null
+  analysesLimit: number | null
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const isPro = plan === 'pro'
 
   async function handleSignOut() {
     await authClient.signOut()
@@ -123,6 +132,39 @@ export function DashboardNav({
                 </span>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+
+            {/* Subscription status */}
+            <Link
+              href="/dashboard/billing"
+              className="mx-1 mb-1 flex flex-col gap-1.5 rounded-md px-2 py-2 outline-none transition-colors hover:bg-secondary focus-visible:bg-secondary"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Current plan
+                </span>
+                {isPro ? (
+                  <Badge className="gap-1 bg-accent text-accent-foreground">
+                    <Zap className="size-3" />
+                    Pro
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">Free</Badge>
+                )}
+              </div>
+              {isPro ? (
+                <span className="text-xs text-muted-foreground">
+                  Unlimited CV analyses
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {analysesLeft} of {analysesLimit}
+                  </span>{' '}
+                  free analyses left this month
+                </span>
+              )}
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
               <UserRound className="size-4" />
