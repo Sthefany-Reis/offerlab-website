@@ -64,17 +64,17 @@ export function HelpBot() {
         <div
           role="dialog"
           aria-label="OfferLab help assistant"
-          className="flex h-[32rem] max-h-[calc(100svh-6rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+          className="flex h-[32rem] max-h-[calc(100svh-6rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl duration-300 animate-in fade-in slide-in-from-bottom-4 zoom-in-95"
         >
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 border-b border-border bg-primary px-4 py-3 text-primary-foreground">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-accent px-4 py-3 text-accent-foreground">
             <div className="flex min-w-0 items-center gap-2">
-              <div className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
+              <div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-foreground/15">
                 <Sparkles className="size-4" />
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">Help Assistant</p>
-                <p className="truncate text-xs text-primary-foreground/80">
+                <p className="truncate text-xs text-accent-foreground/80">
                   {topic.label}
                 </p>
               </div>
@@ -82,7 +82,7 @@ export function HelpBot() {
             <button
               onClick={() => setOpen(false)}
               aria-label="Close help assistant"
-              className="grid size-7 shrink-0 place-items-center rounded-full text-primary-foreground/80 transition-colors hover:bg-primary-foreground/15 hover:text-primary-foreground"
+              className="grid size-7 shrink-0 place-items-center rounded-full text-accent-foreground/80 transition-colors hover:bg-accent-foreground/15 hover:text-accent-foreground"
             >
               <X className="size-4" />
             </button>
@@ -122,9 +122,9 @@ export function HelpBot() {
                 }`}
               >
                 <div
-                  className={`max-w-[85%] whitespace-pre-wrap text-pretty rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                  className={`max-w-[85%] whitespace-pre-wrap text-pretty rounded-2xl px-3.5 py-2 text-sm leading-relaxed duration-200 animate-in fade-in slide-in-from-bottom-1 ${
                     m.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-accent text-accent-foreground'
                       : 'bg-secondary text-secondary-foreground'
                   }`}
                 >
@@ -153,7 +153,12 @@ export function HelpBot() {
                 disabled={busy}
                 aria-label="Ask the help assistant"
               />
-              <Button type="submit" size="icon" disabled={busy || !input.trim()}>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={busy || !input.trim()}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
                 <Send className="size-4" />
                 <span className="sr-only">Send</span>
               </Button>
@@ -166,14 +171,14 @@ export function HelpBot() {
       <Button
         onClick={() => setOpen((v) => !v)}
         size="icon"
-        className="size-14 rounded-full shadow-lg"
+        className="size-14 rounded-full bg-accent text-accent-foreground shadow-lg transition-transform duration-200 hover:scale-105 hover:bg-accent/90 active:scale-95"
         aria-label={open ? 'Close help assistant' : 'Open help assistant'}
         aria-expanded={open}
       >
         {open ? (
-          <X className="size-6" />
+          <X className="size-6 duration-200 animate-in zoom-in-50" />
         ) : (
-          <MessageCircleQuestion className="size-6" />
+          <MessageCircleQuestion className="size-6 duration-200 animate-in zoom-in-50" />
         )}
       </Button>
     </div>

@@ -7,6 +7,7 @@ import {
   Users,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Reveal } from '@/components/reveal'
 
 const tools = [
   {
@@ -57,27 +58,28 @@ export function Features() {
       </div>
 
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {tools.map((tool) => (
-          <Card
-            key={tool.title}
-            className="group p-6 transition-colors hover:border-primary/40"
-          >
-            <div className="grid size-11 place-items-center rounded-lg bg-secondary text-primary">
-              <tool.icon className="size-5" aria-hidden="true" />
-            </div>
-            <h3 className="mt-5 text-lg font-semibold">{tool.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {tool.desc}
+        {tools.map((tool, i) => (
+          <Reveal key={tool.title} delay={i * 70} className="h-full">
+            <Card className="group h-full p-6 transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md">
+              <div className="grid size-11 place-items-center rounded-lg bg-secondary text-primary transition-transform duration-200 group-hover:scale-110">
+                <tool.icon className="size-5" aria-hidden="true" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold">{tool.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {tool.desc}
+              </p>
+            </Card>
+          </Reveal>
+        ))}
+        <Reveal delay={tools.length * 70} className="h-full">
+          <Card className="flex h-full flex-col justify-center bg-primary p-6 text-primary-foreground">
+            <p className="text-2xl font-semibold tracking-tight">+38%</p>
+            <p className="mt-2 text-sm leading-relaxed text-primary-foreground/80">
+              Average salary upside our roadmap unlocks once your top skill gaps
+              are closed.
             </p>
           </Card>
-        ))}
-        <Card className="flex flex-col justify-center bg-primary p-6 text-primary-foreground">
-          <p className="text-2xl font-semibold tracking-tight">+38%</p>
-          <p className="mt-2 text-sm leading-relaxed text-primary-foreground/80">
-            Average salary upside our roadmap unlocks once your top skill gaps are
-            closed.
-          </p>
-        </Card>
+        </Reveal>
       </div>
     </section>
   )

@@ -3,7 +3,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { cvReports } from '@/lib/db/schema'
-import { cvReportSchema, type CvReport } from '@/lib/cv-report-schema'
+import {
+  cvReportSchema,
+  desiredRolePlanSchema,
+  type CvReport,
+  type DesiredRolePlan,
+} from '@/lib/cv-report-schema'
 import { generateText, Output } from 'ai'
 import { and, desc, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
@@ -181,5 +186,60 @@ Rewrite it as a polished Markdown CV.`,
       err instanceof Error ? err.message : err,
     )
     return { error: 'Could not regenerate the CV right now. Please try again.' }
+  }
+}
+
+// Recompute the path-to-dream-role plan for a new target role chosen by the
+// candidate (either a recommended role or a custom one), and persist it.
+export async function updateDesiredRole(
+  reportId: number,
+  desiredRole: string,
+): Promise<{ plan: DesiredRolePlan } | { error: string }> {
+  const userId = await getUserId()
+  const role = desiredRole.trim()
+  if (!role) return { error: 'Please choose or enter a role.' }
+
+  const [row] = await db
+    .select()
+    .from(cvReports)
+    .where(and(eq(cvReports.id, reportId), eq(cvReports.userId, userId)))
+    .limit(1)
+  if (!row) return { error: 'Report not found.' }
+
+  const report = row.result as CvReport
+
+  try {
+    const { output } = await generateText({
+      model: 'openai/gpt-5-mini',
+      output: Output.object({ schema: desiredRolePlanSchema }),
+      system: `You are OfferLab, an elite career strategist. Given a candidate's CV and the role they WANT to land next, produce ONLY the "desiredRolePlan": compare where the CV best fits ("bestFitRole") with the desired role, set "isMismatch" true when the CV is currently better suited to a different role, estimate "currentFit" (0-100), and give the exact real, named certifications and concrete skills needed to qualify for the DESIRED role. Be specific and grounded in what the CV actually says. Never invent experience.`,
+      prompt: `The role the candidate WANTS to land next: "${role}".
+
+CV / RESUME TEXT:
+"""
+${row.cvText.slice(0, 16000)}
+"""
+
+Return the structured plan to reach this desired role.`,
+    })
+
+    const plan = output as DesiredRolePlan
+    const updated: CvReport = { ...report, desiredRolePlan: plan }
+
+    await db
+      .update(cvReports)
+      .set({ result: updated, desiredRole: role })
+      .where(and(eq(cvReports.id, reportId), eq(cvReports.userId, userId)))
+
+    revalidatePath('/dashboard')
+    return { plan }
+  } catch (err) {
+    console.log(
+      '[v0] updateDesiredRole error:',
+      err instanceof Error ? err.message : err,
+    )
+    return {
+      error: 'Could not update your dream-role plan right now. Please try again.',
+    }
   }
 }

@@ -89,9 +89,9 @@ export function DashboardNav({
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5',
                   active
-                    ? 'bg-secondary text-foreground'
+                    ? 'bg-secondary text-foreground shadow-sm'
                     : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
                 )}
               >
