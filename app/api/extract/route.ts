@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   try {
     const { text } = await generateText({
-      model: 'anthropic/claude-sonnet-4.6',
+      model: 'google/gemini-3-flash',
       messages: [
         {
           role: 'user',

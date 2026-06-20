@@ -45,7 +45,7 @@ export async function analyzeCv(input: {
 
   try {
     const { output } = await generateText({
-      model: 'openai/gpt-5.4-mini',
+      model: 'openai/gpt-5-mini',
       output: Output.object({ schema: analysisResultSchema }),
       system: SYSTEM_PROMPT,
       prompt: `${
