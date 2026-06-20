@@ -63,17 +63,15 @@ export function DashboardNav({
           </Button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="rounded-full outline-none ring-ring focus-visible:ring-2"
-                aria-label="Account menu"
-              >
-                <Avatar className="size-9">
-                  <AvatarFallback className="bg-secondary text-sm font-medium">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
+            <DropdownMenuTrigger
+              className="rounded-full outline-none ring-ring focus-visible:ring-2"
+              aria-label="Account menu"
+            >
+              <Avatar className="size-9">
+                <AvatarFallback className="bg-secondary text-sm font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="flex flex-col">
