@@ -89,9 +89,9 @@ export function DashboardNav({
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5',
                   active
-                    ? 'bg-secondary text-foreground'
+                    ? 'bg-secondary text-foreground shadow-sm'
                     : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground',
                 )}
               >
@@ -104,11 +104,11 @@ export function DashboardNav({
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="shrink-0 rounded-full outline-none ring-ring focus-visible:ring-2"
+            className="group shrink-0 rounded-full outline-none ring-ring transition-transform duration-200 hover:scale-105 focus-visible:ring-2 data-[popup-open]:scale-105"
             aria-label="Account menu"
           >
             <Avatar className="size-9">
-              <AvatarFallback className="bg-secondary text-sm font-medium">
+              <AvatarFallback className="bg-secondary text-sm font-medium text-muted-foreground transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-foreground group-data-[popup-open]:bg-accent group-data-[popup-open]:text-accent-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>

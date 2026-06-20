@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { regenerateCv } from '@/app/actions/cv-report'
-import type { CvReport } from '@/lib/cv-report-schema'
+import { regenerateCv, updateDesiredRole } from '@/app/actions/cv-report'
+import type { CvReport, DesiredRolePlan } from '@/lib/cv-report-schema'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
@@ -24,10 +25,12 @@ import {
   GraduationCap,
   Info,
   Loader2,
+  Pencil,
   RefreshCw,
   Sparkles,
   Target,
   TriangleAlert,
+  Wand2,
 } from 'lucide-react'
 
 function fmt(n: number, currency: string) {
@@ -78,6 +81,33 @@ export function CvReportView({
 }) {
   const [regenerating, setRegenerating] = useState(false)
   const [newCv, setNewCv] = useState<string | null>(null)
+  const [plan, setPlan] = useState<DesiredRolePlan>(report.desiredRolePlan)
+  const [updatingRole, setUpdatingRole] = useState(false)
+  const [customRole, setCustomRole] = useState('')
+
+  // Recommended roles the candidate can aim for: their best current fit plus
+  // every role they already qualify for, de-duplicated.
+  const recommendedRoles = Array.from(
+    new Set([
+      report.detectedRole,
+      ...report.qualifiedRoles.map((r) => r.title),
+    ]),
+  )
+
+  async function chooseDreamRole(role: string) {
+    const target = role.trim()
+    if (!target || updatingRole) return
+    setUpdatingRole(true)
+    const res = await updateDesiredRole(reportId, target)
+    setUpdatingRole(false)
+    if ('error' in res) {
+      toast.error(res.error)
+      return
+    }
+    setPlan(res.plan)
+    setCustomRole('')
+    toast.success(`Updated your plan for ${target}.`)
+  }
 
   async function handleRegenerate() {
     setRegenerating(true)
@@ -123,8 +153,6 @@ export function CvReportView({
       }
     }
   }
-
-  const plan = report.desiredRolePlan
 
   return (
     <div className="space-y-6">
@@ -185,10 +213,14 @@ export function CvReportView({
           <p className="text-sm text-muted-foreground">
             Roles you can realistically get hired for right now, based on your CV.
           </p>
-          {report.qualifiedRoles.map((role) => {
+          {report.qualifiedRoles.map((role, i) => {
             const tone = matchTone(role.matchScore)
             return (
-              <Card key={role.title} className="p-5">
+              <Card
+                key={role.title}
+                className="p-5 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 fill-mode-both hover:-translate-y-0.5 hover:shadow-md"
+                style={{ animationDelay: `${i * 70}ms` }}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-semibold">{role.title}</h3>
@@ -219,11 +251,15 @@ export function CvReportView({
                 <Dialog>
                   <DialogTrigger
                     render={
-                      <Button variant="outline" size="sm" className="mt-4" />
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        className="mt-3 border-accent/30 bg-accent/10 text-accent transition-colors hover:bg-accent/20 hover:text-accent dark:bg-accent/15"
+                      />
                     }
                   >
-                    <Info className="size-3.5" />
-                    View role &amp; companies hiring
+                    <Info />
+                    View role &amp; companies
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
@@ -303,6 +339,81 @@ export function CvReportView({
 
         {/* Desired role plan */}
         <TabsContent value="path" className="mt-4 space-y-4">
+          {/* Dream role chooser */}
+          <Card className="p-6">
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Wand2 className="size-4 text-accent" />
+              Choose your dream role
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Use a role we recommend, or aim for something else entirely. We&apos;ll
+              rebuild your plan for it.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {recommendedRoles.map((role) => {
+                const active =
+                  role.toLowerCase() === plan.desiredRole.toLowerCase()
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => chooseDreamRole(role)}
+                    disabled={updatingRole}
+                    aria-pressed={active}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all hover:-translate-y-0.5 disabled:opacity-50 ${
+                      active
+                        ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                    }`}
+                  >
+                    {role}
+                  </button>
+                )
+              })}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                chooseDreamRole(customRole)
+              }}
+              className="mt-4 flex flex-col gap-2 sm:flex-row"
+            >
+              <div className="relative flex-1">
+                <Pencil className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value)}
+                  placeholder="Or type a different dream role…"
+                  className="pl-9"
+                  disabled={updatingRole}
+                  aria-label="Custom dream role"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={updatingRole || !customRole.trim()}
+              >
+                {updatingRole ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Updating…
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="size-4" />
+                    Build plan
+                  </>
+                )}
+              </Button>
+            </form>
+          </Card>
+
+          <div
+            key={plan.desiredRole}
+            className="space-y-4 animate-in fade-in slide-in-from-bottom-1 duration-300"
+          >
           {plan.isMismatch && (
             <Card className="flex items-start gap-3 border-warning/30 bg-warning/10 p-4">
               <TriangleAlert className="mt-0.5 size-5 shrink-0 text-warning" />
@@ -376,6 +487,7 @@ export function CvReportView({
               ))}
             </div>
           </Card>
+          </div>
         </TabsContent>
 
         {/* CV quality */}
