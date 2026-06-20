@@ -13,6 +13,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    // Sends the password reset link. No email provider is connected yet, so we
+    // log the link server-side. Wire up an email provider (Resend, etc.) here
+    // to deliver it to users' inboxes in production.
+    sendResetPassword: async ({ user, url }) => {
+      console.log(
+        `[v0] Password reset link for ${user.email}: ${url}`,
+      )
+    },
   },
   trustedOrigins: [
     ...(process.env.NODE_ENV === 'development'

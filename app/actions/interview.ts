@@ -14,6 +14,11 @@ const questionSchema = z.object({
 })
 
 const answerSchema = z.object({
+  howToAnswer: z
+    .string()
+    .describe(
+      'Clear guidance on how to approach THIS KIND of interview question: what the interviewer is looking for, the structure or framework to use, and what to include and avoid. 3-5 sentences, written as coaching advice.',
+    ),
   modelAnswer: z
     .string()
     .describe(
@@ -87,11 +92,12 @@ ${userAnswer.trim() || '(The candidate did not provide an answer.)'}
 """
 
 Provide:
-1. modelAnswer: the strongest possible answer for this role, in first person.
-2. structure: the framework it uses and why it works.
-3. feedback: specific feedback on the candidate's own answer (or coaching if none was given).
-4. score: 0-100 rating of the candidate's answer (0 if none given).
-5. tips: 2-4 short delivery tips.`,
+1. howToAnswer: how to approach THIS KIND of question — what's being assessed, the framework to use, what to include and avoid.
+2. modelAnswer: the strongest possible answer for this role, in first person.
+3. structure: the framework it uses and why it works.
+4. feedback: specific feedback on the candidate's own answer (or coaching if none was given).
+5. score: 0-100 rating of the candidate's answer (0 if none given).
+6. tips: 2-4 short delivery tips.`,
     })
     return { answer: object }
   } catch (err) {

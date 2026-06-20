@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { LinkedinIcon } from '@/components/icons/linkedin-icon'
 import {
   Check,
   Loader2,
@@ -16,6 +17,7 @@ import {
   Search,
   Briefcase,
   Building2,
+  ExternalLink,
 } from 'lucide-react'
 
 type Job = JobRow & { applied: boolean }
@@ -260,6 +262,36 @@ export function JobSearch({
                       ))}
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+                  <span className="text-xs text-muted-foreground">
+                    Compare this role on:
+                  </span>
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+                        `${job.title} ${job.company}`,
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <LinkedinIcon className="size-3.5" />
+                      LinkedIn
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`https://www.indeed.com/jobs?q=${encodeURIComponent(
+                        `${job.title} ${job.company}`,
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Indeed
+                    </a>
+                  </Button>
                 </div>
               </Card>
             )

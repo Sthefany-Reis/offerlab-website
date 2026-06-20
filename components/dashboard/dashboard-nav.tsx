@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -22,6 +23,8 @@ import {
   ClipboardList,
   MessagesSquare,
   Users,
+  UserRound,
+  History,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-logo'
 
@@ -70,8 +73,9 @@ export function DashboardNav({
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
-          href="/dashboard"
-          className="flex shrink-0 items-center gap-2 font-semibold tracking-tight"
+          href="/"
+          aria-label="OfferLab home"
+          className="flex shrink-0 items-center gap-2 rounded-md font-semibold tracking-tight outline-none ring-ring transition-opacity hover:opacity-80 focus-visible:ring-2"
         >
           <BrandMark size={32} priority />
           <span className="hidden text-lg sm:inline">OfferLab</span>
@@ -110,12 +114,23 @@ export function DashboardNav({
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="flex flex-col">
-              <span className="truncate">{name || 'Your account'}</span>
-              <span className="truncate text-xs font-normal text-muted-foreground">
-                {email}
-              </span>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="flex flex-col">
+                <span className="truncate">{name || 'Your account'}</span>
+                <span className="truncate text-xs font-normal text-muted-foreground">
+                  {email}
+                </span>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+              <UserRound className="size-4" />
+              Profile &amp; settings
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/dashboard/history" />}>
+              <History className="size-4" />
+              CV history
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="size-4" />

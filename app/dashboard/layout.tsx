@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
+import { HelpBot } from '@/components/dashboard/help-bot'
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +19,7 @@ export default async function DashboardLayout({
         email={session.user.email}
       />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <HelpBot />
     </div>
   )
 }

@@ -36,7 +36,7 @@ export async function searchJobs(input: {
     const { output } = await generateText({
       model: 'openai/gpt-5-mini',
       output: Output.object({ schema: jobSearchSchema }),
-      system: `You are a job board engine. Generate realistic, varied, currently-plausible job postings that match the user's search. Use realistic but fictional company names. Salaries should be realistic for the role and location. ${
+      system: `You are a job board aggregator that surfaces realistic openings comparable to those found on LinkedIn and Indeed. Generate realistic, varied, currently-plausible job postings that match the user's search. Use realistic but fictional company names. Salaries should be realistic for the role and location. ${
         report
           ? 'A candidate CV is provided: set each job\'s "matchScore" (0-100) based on how well this candidate fits that specific posting.'
           : 'No CV is provided: set every "matchScore" to 0.'
@@ -175,6 +175,9 @@ export async function getApplications() {
       salaryHigh: jobs.salaryHigh,
       currency: jobs.currency,
       matchScore: jobs.matchScore,
+      summary: jobs.summary,
+      requirements: jobs.requirements,
+      niceToHaves: jobs.niceToHaves,
     })
     .from(applications)
     .innerJoin(jobs, eq(applications.jobId, jobs.id))

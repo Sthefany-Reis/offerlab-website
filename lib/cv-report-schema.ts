@@ -16,6 +16,18 @@ export const qualifiedRoleSchema = z.object({
   why: z
     .string()
     .describe('One sentence on why the candidate is a good fit for this role'),
+  description: z
+    .string()
+    .describe(
+      'A 2-4 sentence description of what this role actually does day-to-day and the kind of work involved',
+    ),
+  companies: z
+    .array(z.string())
+    .min(3)
+    .max(8)
+    .describe(
+      'Real, well-known companies that commonly hire for this kind of role',
+    ),
   salaryLow: z.number().int().describe('Lower bound annual base salary'),
   salaryHigh: z.number().int().describe('Upper bound annual base salary'),
   currency: z.string().describe('Currency code, e.g. USD'),

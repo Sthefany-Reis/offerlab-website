@@ -179,6 +179,16 @@ export function InterviewPractice() {
             </div>
           )}
 
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Lightbulb className="size-4 text-primary" />
+              How to answer this kind of question
+            </h3>
+            <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">
+              {result.howToAnswer}
+            </p>
+          </div>
+
           <div>
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <MessageSquareText className="size-4 text-primary" />
