@@ -8,7 +8,9 @@ import {
   Trash2,
   Briefcase,
   FileText,
+  PenLine,
 } from 'lucide-react'
+import { AppliedCoverLetter } from '@/components/dashboard/applied-cover-letter'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -63,7 +65,13 @@ function fmtSalary(low: number | null, high: number | null, currency: string) {
   return f((low || high) as number)
 }
 
-export function ApplicationsList({ items }: { items: ApplicationWithJob[] }) {
+export function ApplicationsList({
+  items,
+  isPro,
+}: {
+  items: ApplicationWithJob[]
+  isPro: boolean
+}) {
   if (items.length === 0) {
     return (
       <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
@@ -85,13 +93,19 @@ export function ApplicationsList({ items }: { items: ApplicationWithJob[] }) {
   return (
     <div className="flex flex-col gap-4">
       {items.map((item) => (
-        <ApplicationRow key={item.id} item={item} />
+        <ApplicationRow key={item.id} item={item} isPro={isPro} />
       ))}
     </div>
   )
 }
 
-function ApplicationRow({ item }: { item: ApplicationWithJob }) {
+function ApplicationRow({
+  item,
+  isPro,
+}: {
+  item: ApplicationWithJob
+  isPro: boolean
+}) {
   const [status, setStatus] = useState<ApplicationStatus>(
     item.status as ApplicationStatus,
   )
@@ -142,11 +156,10 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
           {salary && <span>{salary}</span>}
         </div>
 
+        <div className="mt-3 flex flex-wrap gap-2">
         <Dialog>
           <DialogTrigger
-            render={
-              <Button variant="outline" size="sm" className="mt-3" />
-            }
+            render={<Button variant="outline" size="sm" />}
           >
             <FileText className="size-3.5" />
             View description
@@ -199,6 +212,29 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog>
+          <DialogTrigger render={<Button variant="outline" size="sm" />}>
+            <PenLine className="size-3.5" />
+            Cover letter
+          </DialogTrigger>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Cover letter</DialogTitle>
+              <DialogDescription>
+                {item.title} · {item.company}
+              </DialogDescription>
+            </DialogHeader>
+            <AppliedCoverLetter
+              coverLetter={item.coverLetter}
+              isPro={isPro}
+              jobId={item.jobId}
+              jobTitle={item.title}
+              company={item.company}
+            />
+          </DialogContent>
+        </Dialog>
+        </div>
       </div>
 
       <div className="flex shrink-0 flex-col gap-2 sm:w-48">

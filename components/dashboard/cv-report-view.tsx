@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { regenerateCv, updateDesiredRole } from '@/app/actions/cv-report'
 import type { CvReport, DesiredRolePlan } from '@/lib/cv-report-schema'
@@ -9,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CoverLetterTool } from '@/components/dashboard/cover-letter-tool'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +27,9 @@ import {
   GraduationCap,
   Info,
   Loader2,
+  Lock,
   Pencil,
+  PenLine,
   RefreshCw,
   Sparkles,
   Target,
@@ -75,9 +79,11 @@ const severityStyles: Record<
 export function CvReportView({
   report,
   reportId,
+  isPro = false,
 }: {
   report: CvReport
   reportId: number
+  isPro?: boolean
 }) {
   const [regenerating, setRegenerating] = useState(false)
   const [newCv, setNewCv] = useState<string | null>(null)
@@ -186,7 +192,7 @@ export function CvReportView({
       </Card>
 
       <Tabs defaultValue="jobs">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
           <TabsTrigger value="jobs">
             <Briefcase className="size-4" />
             <span className="hidden sm:inline">Qualified for</span>
@@ -205,6 +211,11 @@ export function CvReportView({
             <Sparkles className="size-4" />
             <span className="hidden sm:inline">CV quality</span>
             <span className="sm:hidden">CV</span>
+          </TabsTrigger>
+          <TabsTrigger value="cover">
+            <PenLine className="size-4" />
+            <span className="hidden sm:inline">Cover letter</span>
+            <span className="sm:hidden">Letter</span>
           </TabsTrigger>
         </TabsList>
 
@@ -535,23 +546,34 @@ export function CvReportView({
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary/60 p-4">
               <p className="text-sm">
-                {report.cvQuality.needsRedesign
-                  ? 'We think your CV could be holding you back. Regenerate a cleaner version from your information.'
-                  : 'Your CV is solid. You can still regenerate a polished version if you like.'}
+                {!isPro
+                  ? 'Regenerating a clean, ATS-friendly CV from your information is a Pro feature.'
+                  : report.cvQuality.needsRedesign
+                    ? 'We think your CV could be holding you back. Regenerate a cleaner version from your information.'
+                    : 'Your CV is solid. You can still regenerate a polished version if you like.'}
               </p>
-              <Button onClick={handleRegenerate} disabled={regenerating}>
-                {regenerating ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Regenerating...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="size-4" />
-                    Regenerate CV
-                  </>
-                )}
-              </Button>
+              {isPro ? (
+                <Button onClick={handleRegenerate} disabled={regenerating}>
+                  {regenerating ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="size-4" />
+                      Regenerate CV
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href="/dashboard/billing">
+                    <Lock className="size-4" />
+                    Upgrade to regenerate
+                  </Link>
+                </Button>
+              )}
             </div>
           </Card>
 
@@ -569,6 +591,18 @@ export function CvReportView({
               </pre>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Cover letter */}
+        <TabsContent value="cover" className="mt-4 space-y-4">
+          <div>
+            <h3 className="font-semibold">AI cover letter</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Generate a tailored cover letter for your dream role, or paste one
+              to get an honest rating.
+            </p>
+          </div>
+          <CoverLetterTool isPro={isPro} jobTitle={report.detectedRole} />
         </TabsContent>
       </Tabs>
     </div>

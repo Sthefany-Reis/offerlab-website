@@ -3,8 +3,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { searchJobs, applyToJob } from '@/app/actions/jobs'
+import { searchJobs } from '@/app/actions/jobs'
 import type { JobRow } from '@/lib/db/schema'
+import { ApplyDialog } from '@/components/dashboard/apply-dialog'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -46,16 +47,19 @@ function matchTone(score: number) {
 export function JobSearch({
   initialJobs,
   hasCv,
+  initialCv,
+  isPro,
 }: {
   initialJobs: Job[]
   hasCv: boolean
+  initialCv: string
+  isPro: boolean
 }) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [location, setLocation] = useState('')
   const [workMode, setWorkMode] = useState<(typeof WORK_MODES)[number]>('any')
   const [searching, setSearching] = useState(false)
-  const [applyingId, setApplyingId] = useState<number | null>(null)
   const [, startTransition] = useTransition()
 
   async function handleSearch(e: React.FormEvent) {
@@ -73,18 +77,6 @@ export function JobSearch({
     }
     startTransition(() => router.refresh())
     toast.success('Found matching roles.')
-  }
-
-  async function handleApply(jobId: number) {
-    setApplyingId(jobId)
-    const res = await applyToJob(jobId)
-    setApplyingId(null)
-    if ('error' in res) {
-      toast.error(res.error)
-      return
-    }
-    toast.success('Application tracked.')
-    startTransition(() => router.refresh())
   }
 
   return (
@@ -210,15 +202,16 @@ export function JobSearch({
                         Applied
                       </Button>
                     ) : (
-                      <Button
-                        onClick={() => handleApply(job.id)}
-                        disabled={applyingId === job.id}
-                      >
-                        {applyingId === job.id ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : null}
-                        Apply
-                      </Button>
+                      <ApplyDialog
+                        jobId={job.id}
+                        jobTitle={job.title}
+                        company={job.company}
+                        initialCv={initialCv}
+                        isPro={isPro}
+                        onApplied={() =>
+                          startTransition(() => router.refresh())
+                        }
+                      />
                     )}
                   </div>
                 </div>

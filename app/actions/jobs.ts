@@ -119,10 +119,19 @@ export async function getJobs() {
   return rows.map((r) => ({ ...r, applied: appliedIds.has(r.id) }))
 }
 
-export async function applyToJob(
-  jobId: number,
-): Promise<{ ok: true } | { error: string }> {
+export async function applyToJob(input: {
+  jobId: number
+  cvText: string
+  coverLetter?: string
+}): Promise<{ ok: true } | { error: string }> {
   const userId = await getUserId()
+  const { jobId } = input
+  const cvText = input.cvText.trim()
+  const coverLetter = input.coverLetter?.trim() || null
+
+  if (cvText.length < 50) {
+    return { error: 'Please add the CV you want to apply with.' }
+  }
 
   // Ensure the job belongs to the user.
   const [job] = await db
@@ -142,10 +151,24 @@ export async function applyToJob(
     .limit(1)
   if (existing) return { ok: true }
 
-  await db.insert(applications).values({ userId, jobId, status: 'applied' })
+  await db
+    .insert(applications)
+    .values({ userId, jobId, status: 'applied', cvText, coverLetter })
   revalidatePath('/dashboard/jobs')
   revalidatePath('/dashboard/applications')
   return { ok: true }
+}
+
+// Returns the user's most recent analyzed CV text to prefill applications.
+export async function getLatestCvText(): Promise<string> {
+  const userId = await getUserId()
+  const [report] = await db
+    .select({ cvText: cvReports.cvText })
+    .from(cvReports)
+    .where(eq(cvReports.userId, userId))
+    .orderBy(desc(cvReports.createdAt))
+    .limit(1)
+  return report?.cvText ?? ''
 }
 
 const STATUSES = [
@@ -164,6 +187,8 @@ export async function getApplications() {
       id: applications.id,
       status: applications.status,
       note: applications.note,
+      cvText: applications.cvText,
+      coverLetter: applications.coverLetter,
       createdAt: applications.createdAt,
       jobId: jobs.id,
       title: jobs.title,

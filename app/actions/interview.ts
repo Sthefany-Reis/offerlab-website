@@ -2,6 +2,7 @@
 
 import { generateObject } from 'ai'
 import { z } from 'zod'
+import { getWeeklyUsage, recordUsage } from '@/app/actions/subscription'
 
 const questionSchema = z.object({
   question: z.string().describe('A realistic interview question'),
@@ -56,6 +57,15 @@ export async function generateQuestion(
   asked: string[],
 ): Promise<{ question: InterviewQuestion } | { error: string }> {
   if (!role.trim()) return { error: 'Choose a target role first.' }
+
+  // Enforce the weekly interview-question limit for free users.
+  const usage = await getWeeklyUsage('interview')
+  if (!usage.unlimited && usage.remaining <= 0) {
+    return {
+      error: `You've used all ${usage.limit} free interview questions this week. Upgrade to Pro for unlimited practice.`,
+    }
+  }
+
   try {
     const { object } = await generateObject({
       model: 'openai/gpt-5-mini',
@@ -66,6 +76,7 @@ Vary the category across behavioral, technical, situational, and role-specific.
 Do NOT repeat any of these already-asked questions:
 ${asked.length ? asked.map((q) => `- ${q}`).join('\n') : '(none yet)'}`,
     })
+    await recordUsage('interview')
     return { question: object }
   } catch (err) {
     console.log('[v0] generateQuestion error:', err)

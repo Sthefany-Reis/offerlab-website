@@ -9,6 +9,10 @@ import {
   type CvReport,
   type DesiredRolePlan,
 } from '@/lib/cv-report-schema'
+import {
+  getAnalysisUsage,
+  hasActiveSubscription,
+} from '@/app/actions/subscription'
 import { generateText, Output } from 'ai'
 import { and, desc, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
@@ -41,6 +45,14 @@ export async function analyzeCv(input: {
     return {
       error:
         'That CV looks too short to analyze. Please paste your full CV or upload a complete document.',
+    }
+  }
+
+  // Enforce the monthly analysis limit for free users.
+  const usage = await getAnalysisUsage()
+  if (!usage.unlimited && usage.remaining <= 0) {
+    return {
+      error: `You've used all ${usage.limit} free CV analyses this month. Upgrade to Pro for unlimited analyses.`,
     }
   }
 
@@ -148,6 +160,13 @@ export async function regenerateCv(
   reportId: number,
 ): Promise<{ cv: string } | { error: string }> {
   const userId = await getUserId()
+
+  // CV regeneration is a Pro-only feature.
+  if (!(await hasActiveSubscription())) {
+    return {
+      error: 'Regenerating your CV is a Pro feature. Upgrade to unlock it.',
+    }
+  }
 
   const [row] = await db
     .select()

@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { redirect, notFound } from 'next/navigation'
 import { getSpecialist } from '@/lib/specialists'
 import { SpecialistChat } from '@/components/dashboard/specialist-chat'
+import { getWeeklyUsage } from '@/app/actions/subscription'
 
 export default async function SpecialistChatPage({
   params,
@@ -16,5 +17,7 @@ export default async function SpecialistChatPage({
   const specialist = getSpecialist(id)
   if (!specialist) notFound()
 
-  return <SpecialistChat specialist={specialist} />
+  const usage = await getWeeklyUsage('specialist')
+
+  return <SpecialistChat specialist={specialist} usage={usage} />
 }

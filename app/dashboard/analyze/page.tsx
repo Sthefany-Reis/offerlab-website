@@ -1,8 +1,11 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { CvAnalyze } from '@/components/dashboard/cv-analyze'
+import { getAnalysisUsage } from '@/app/actions/subscription'
 
-export default function AnalyzePage() {
+export default async function AnalyzePage() {
+  const usage = await getAnalysisUsage()
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link
@@ -21,7 +24,7 @@ export default function AnalyzePage() {
         </p>
       </div>
 
-      <CvAnalyze />
+      <CvAnalyze usage={usage} />
     </div>
   )
 }
