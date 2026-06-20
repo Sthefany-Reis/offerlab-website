@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CoverLetterTool } from '@/components/dashboard/cover-letter-tool'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
   Info,
   Loader2,
   Pencil,
+  PenLine,
   RefreshCw,
   Sparkles,
   Target,
@@ -75,9 +77,11 @@ const severityStyles: Record<
 export function CvReportView({
   report,
   reportId,
+  isPro = false,
 }: {
   report: CvReport
   reportId: number
+  isPro?: boolean
 }) {
   const [regenerating, setRegenerating] = useState(false)
   const [newCv, setNewCv] = useState<string | null>(null)
@@ -186,7 +190,7 @@ export function CvReportView({
       </Card>
 
       <Tabs defaultValue="jobs">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
           <TabsTrigger value="jobs">
             <Briefcase className="size-4" />
             <span className="hidden sm:inline">Qualified for</span>
@@ -205,6 +209,11 @@ export function CvReportView({
             <Sparkles className="size-4" />
             <span className="hidden sm:inline">CV quality</span>
             <span className="sm:hidden">CV</span>
+          </TabsTrigger>
+          <TabsTrigger value="cover">
+            <PenLine className="size-4" />
+            <span className="hidden sm:inline">Cover letter</span>
+            <span className="sm:hidden">Letter</span>
           </TabsTrigger>
         </TabsList>
 
@@ -569,6 +578,18 @@ export function CvReportView({
               </pre>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Cover letter */}
+        <TabsContent value="cover" className="mt-4 space-y-4">
+          <div>
+            <h3 className="font-semibold">AI cover letter</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Generate a tailored cover letter for your dream role, or paste one
+              to get an honest rating.
+            </p>
+          </div>
+          <CoverLetterTool isPro={isPro} jobTitle={report.detectedRole} />
         </TabsContent>
       </Tabs>
     </div>

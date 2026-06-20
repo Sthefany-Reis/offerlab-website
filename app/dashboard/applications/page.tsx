@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getApplications } from '@/app/actions/jobs'
+import { getSubscription } from '@/app/actions/subscription'
 import { ApplicationsList } from '@/components/dashboard/applications-list'
 
 export default async function ApplicationsPage() {
@@ -9,6 +10,7 @@ export default async function ApplicationsPage() {
   if (!session?.user) redirect('/sign-in')
 
   const items = await getApplications()
+  const sub = await getSubscription()
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8">
@@ -19,7 +21,7 @@ export default async function ApplicationsPage() {
           move through the process.
         </p>
       </header>
-      <ApplicationsList items={items} />
+      <ApplicationsList items={items} isPro={sub.active} />
     </div>
   )
 }

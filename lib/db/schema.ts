@@ -106,9 +106,21 @@ export const applications = pgTable('applications', {
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 })
 
+// Tracks a user's subscription plan and status. One row per user.
+export const subscriptions = pgTable('subscriptions', {
+  id: serial('id').primaryKey(),
+  userId: text('userId').notNull().unique(),
+  plan: text('plan').notNull().default('free'),
+  status: text('status').notNull().default('inactive'),
+  currentPeriodEnd: timestamp('currentPeriodEnd'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+})
+
 export type CvReportRow = typeof cvReports.$inferSelect
 export type JobRow = typeof jobs.$inferSelect
 export type ApplicationRow = typeof applications.$inferSelect
+export type SubscriptionRow = typeof subscriptions.$inferSelect
 
 // --- Reference (unused) ----------------------------------------------------
 // Add your app tables below. Always include a plain `userId` column so queries

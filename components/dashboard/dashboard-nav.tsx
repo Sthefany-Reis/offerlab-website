@@ -25,6 +25,7 @@ import {
   Users,
   UserRound,
   History,
+  Sparkles,
 } from 'lucide-react'
 import { BrandMark } from '@/components/brand-logo'
 
@@ -130,6 +131,10 @@ export function DashboardNav({
             <DropdownMenuItem render={<Link href="/dashboard/history" />}>
               <History className="size-4" />
               CV history
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/dashboard/billing" />}>
+              <Sparkles className="size-4" />
+              Billing &amp; plans
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getReport } from '@/app/actions/cv-report'
+import { getSubscription } from '@/app/actions/subscription'
 import { CvReportView } from '@/components/dashboard/cv-report-view'
 import type { CvReport } from '@/lib/cv-report-schema'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,8 @@ export default async function ReportPage({
   const row = await getReport(reportId)
   if (!row) notFound()
 
+  const sub = await getSubscription()
+
   return (
     <div>
       <Button asChild variant="ghost" size="sm" className="mb-4">
@@ -30,7 +33,11 @@ export default async function ReportPage({
           Back to history
         </Link>
       </Button>
-      <CvReportView report={row.result as CvReport} reportId={row.id} />
+      <CvReportView
+        report={row.result as CvReport}
+        reportId={row.id}
+        isPro={sub.active}
+      />
     </div>
   )
 }

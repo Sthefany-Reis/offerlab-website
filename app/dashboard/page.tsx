@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Sparkles, RefreshCw } from 'lucide-react'
 import { getLatestReport } from '@/app/actions/cv-report'
+import { getSubscription } from '@/app/actions/subscription'
 import type { CvReport } from '@/lib/cv-report-schema'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
   }
 
   const report = row.result as CvReport
+  const sub = await getSubscription()
 
   return (
     <div>
@@ -63,7 +65,7 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      <CvReportView report={report} reportId={row.id} />
+      <CvReportView report={report} reportId={row.id} isPro={sub.active} />
     </div>
   )
 }
