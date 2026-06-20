@@ -183,6 +183,10 @@ export async function getApplications() {
   return rows
 }
 
+export type ApplicationWithJob = Awaited<
+  ReturnType<typeof getApplications>
+>[number]
+
 export async function updateApplicationStatus(
   id: number,
   status: ApplicationStatus,
