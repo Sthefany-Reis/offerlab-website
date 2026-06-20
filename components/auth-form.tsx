@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import { BrandLockup } from '@/components/brand-logo'
 
 export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const router = useRouter()
@@ -42,16 +43,10 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   return (
     <main className="min-h-svh bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm p-6">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 font-semibold tracking-tight"
-        >
-          <span className="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
-            O
-          </span>
-          <span>OfferLab</span>
+        <Link href="/" className="mb-6 flex justify-center" aria-label="OfferLab home">
+          <BrandLockup size={220} priority className="w-44" />
         </Link>
-        <div className="mb-6">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {isSignUp ? 'Create your account' : 'Welcome back'}
           </h1>
