@@ -22,7 +22,7 @@ export function InterviewPrep({ result }: { result: AnalysisResult }) {
         really assessing and a strong sample answer.
       </p>
 
-      <Accordion type="single" collapsible className="space-y-3">
+      <Accordion className="space-y-3">
         {result.interviewQuestions.map((q, i) => (
           <AccordionItem
             key={i}
