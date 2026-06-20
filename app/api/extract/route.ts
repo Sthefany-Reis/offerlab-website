@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   try {
     const { text } = await generateText({
-      model: 'google/gemini-3-flash',
+      model: 'openai/gpt-5-mini',
       messages: [
         {
           role: 'user',
