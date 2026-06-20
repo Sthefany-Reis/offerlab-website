@@ -10,7 +10,7 @@ import {
   FileText,
   PenLine,
 } from 'lucide-react'
-import { CoverLetterTool } from '@/components/dashboard/cover-letter-tool'
+import { AppliedCoverLetter } from '@/components/dashboard/applied-cover-letter'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -225,7 +225,8 @@ function ApplicationRow({
                 {item.title} · {item.company}
               </DialogDescription>
             </DialogHeader>
-            <CoverLetterTool
+            <AppliedCoverLetter
+              coverLetter={item.coverLetter}
               isPro={isPro}
               jobId={item.jobId}
               jobTitle={item.title}
