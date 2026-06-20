@@ -1,7 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, FileText, Search, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+const flow = [
+  { icon: FileText, label: 'Upload CV' },
+  { icon: Search, label: 'Match & apply' },
+  { icon: Trophy, label: 'Get the offer' },
+]
 
 export function Hero({ signedIn }: { signedIn: boolean }) {
   return (
@@ -10,15 +16,16 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs font-medium text-muted-foreground">
             <span className="size-1.5 rounded-full bg-accent" />
-            AI career copilot
+            Your AI career copilot
           </span>
           <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            Search, qualify, and land your next role
+            Where applications become{' '}
+            <span className="text-primary">offers</span>.
           </h1>
           <p className="mt-5 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-            Analyze your CV to see the jobs you qualify for, get a clear path to
-            the role you actually want, search and apply to openings, practice
-            interviews, and chat with career specialists — all in one place.
+            OfferLab turns one CV into your entire job hunt — surfacing the roles
+            you qualify for, applying on your behalf, prepping you for interviews,
+            and coaching you all the way to signed.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -33,16 +40,24 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
             </Button>
           </div>
 
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            {['Jobs you qualify for', 'Apply & track', 'Interview practice'].map(
-              (item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
-                  {item}
-                </li>
-              ),
-            )}
-          </ul>
+          <div className="mt-10 flex flex-wrap items-center gap-3 text-sm font-medium">
+            {flow.map((step, i) => (
+              <div key={step.label} className="flex items-center gap-3">
+                <span className="flex items-center gap-2 text-foreground">
+                  <span className="grid size-8 place-items-center rounded-lg bg-secondary text-primary">
+                    <step.icon className="size-4" aria-hidden="true" />
+                  </span>
+                  {step.label}
+                </span>
+                {i < flow.length - 1 && (
+                  <ArrowRight
+                    className="size-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="relative">
@@ -55,6 +70,12 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
               priority
               className="h-auto w-full"
             />
+          </div>
+          <div className="absolute -bottom-4 -left-4 hidden rounded-xl border border-border bg-card p-4 shadow-xl sm:block">
+            <p className="text-xs text-muted-foreground">Offer probability</p>
+            <p className="mt-0.5 text-2xl font-semibold tracking-tight text-primary">
+              92%
+            </p>
           </div>
         </div>
       </div>

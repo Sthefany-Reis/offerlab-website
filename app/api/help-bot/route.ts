@@ -1,15 +1,10 @@
 import { streamText, convertToModelMessages, type UIMessage } from 'ai'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
 
 export const maxDuration = 30
 
+// The help assistant is purely informational (it uses no user data), so it is
+// available to everyone — including signed-out visitors on the landing page.
 export async function POST(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-
   const {
     messages,
     pageLabel,
