@@ -7,11 +7,21 @@ import {
   ExternalLink,
   Trash2,
   Briefcase,
+  FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { LinkedinIcon } from '@/components/icons/linkedin-icon'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -101,9 +111,11 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
     })
   }
 
-  const linkedInUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
-    `${item.title} ${item.company}`,
-  )}`
+  const keywords = encodeURIComponent(`${item.title} ${item.company}`)
+  const linkedInUrl = `https://www.linkedin.com/jobs/search/?keywords=${keywords}`
+  const indeedUrl = `https://www.indeed.com/jobs?q=${keywords}`
+  const requirements = (item.requirements as string[] | null) ?? []
+  const niceToHaves = (item.niceToHaves as string[] | null) ?? []
 
   return (
     <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
@@ -128,6 +140,64 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
           </span>
           {salary && <span>{salary}</span>}
         </div>
+
+        <Dialog>
+          <DialogTrigger
+            render={
+              <Button variant="outline" size="sm" className="mt-3" />
+            }
+          >
+            <FileText className="size-3.5" />
+            View description
+          </DialogTrigger>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{item.title}</DialogTitle>
+              <DialogDescription>
+                {item.company} · {item.location} · {item.workMode}
+                {salary ? ` · ${salary}` : ''}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {item.summary && (
+                <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
+                  {item.summary}
+                </p>
+              )}
+              {requirements.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold">Requirements</h4>
+                  <ul className="mt-2 space-y-1">
+                    {requirements.map((r) => (
+                      <li
+                        key={r}
+                        className="flex gap-2 text-sm text-muted-foreground"
+                      >
+                        <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {niceToHaves.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold">Nice to have</h4>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {niceToHaves.map((n) => (
+                      <span
+                        key={n}
+                        className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
+                      >
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex shrink-0 flex-col gap-2 sm:w-48">
@@ -145,8 +215,14 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
         </Select>
         <Button asChild variant="outline" size="sm">
           <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="size-3.5" />
+            <LinkedinIcon className="size-3.5" />
             View on LinkedIn
+          </a>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <a href={indeedUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="size-3.5" />
+            View on Indeed
           </a>
         </Button>
         <Button

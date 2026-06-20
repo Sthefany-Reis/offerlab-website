@@ -9,7 +9,15 @@ import { LinkedinIcon } from '@/components/icons/linkedin-icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Specialist } from '@/lib/specialists'
+
+function specialistInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+}
 
 function messageText(parts: { type: string; text?: string }[]) {
   return parts
@@ -61,12 +69,12 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
               <ArrowLeft className="size-4" />
             </Link>
           </Button>
-          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-            {specialist.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')}
-          </div>
+          <Avatar className="size-10 shrink-0">
+            <AvatarImage src={specialist.photo} alt={`${specialist.name} headshot`} />
+            <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
+              {specialistInitials(specialist.name)}
+            </AvatarFallback>
+          </Avatar>
           <div className="min-w-0">
             <h1 className="truncate font-semibold">{specialist.name}</h1>
             <p className="truncate text-xs text-muted-foreground">
@@ -90,12 +98,12 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto py-6">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-10 text-center">
-            <div className="grid size-14 place-items-center rounded-full bg-primary/15 text-lg font-semibold text-primary">
-              {specialist.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')}
-            </div>
+            <Avatar className="size-14">
+              <AvatarImage src={specialist.photo} alt={`${specialist.name} headshot`} />
+              <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
+                {specialistInitials(specialist.name)}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <p className="font-medium">
                 Chat with {specialist.name.split(' ')[0]}

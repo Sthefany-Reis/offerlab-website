@@ -18,7 +18,7 @@ async function getUserId() {
 const SYSTEM_PROMPT = `You are OfferLab, an elite career strategist. You are given the raw text of a candidate's CV and, optionally, the role they WANT to land next.
 
 Produce a rigorous, honest, genuinely useful analysis:
-- "qualifiedRoles": the roles the candidate can realistically get hired for RIGHT NOW based on their CV, scored by match and with realistic annual base salary ranges for their region (infer it; default to the United States in USD).
+- "qualifiedRoles": the roles the candidate can realistically get hired for RIGHT NOW based on their CV, scored by match and with realistic annual base salary ranges for their region (infer it; default to the United States in USD). For each role also include a short "description" of what the role does day-to-day and "companies" — real, well-known companies that commonly hire for that role.
 - "skillGaps": concrete skills the candidate should improve, prioritized.
 - "desiredRolePlan": compare where the CV best fits ("bestFitRole") with the role the candidate wants ("desiredRole"). If no desired role was given, infer the most ambitious realistic next role and use that. Set "isMismatch" true when the CV is currently better suited to a different role than the one they want. Give the exact certifications (real, named) and skills needed to qualify for the DESIRED role.
 - "cvQuality": an honest review of how well the CV is written and structured. Set "needsRedesign" true when the CV is poorly organized, vague, or weak so it should be regenerated.
@@ -92,6 +92,31 @@ export async function getLatestReport() {
     .orderBy(desc(cvReports.createdAt))
     .limit(1)
   return row ?? null
+}
+
+export async function getReports() {
+  const userId = await getUserId()
+  const rows = await db
+    .select({
+      id: cvReports.id,
+      desiredRole: cvReports.desiredRole,
+      result: cvReports.result,
+      createdAt: cvReports.createdAt,
+    })
+    .from(cvReports)
+    .where(eq(cvReports.userId, userId))
+    .orderBy(desc(cvReports.createdAt))
+  return rows.map((r) => {
+    const result = r.result as CvReport
+    return {
+      id: r.id,
+      desiredRole: r.desiredRole,
+      createdAt: r.createdAt,
+      detectedRole: result.detectedRole,
+      seniority: result.seniority,
+      candidateName: result.candidateName,
+    }
+  })
 }
 
 export async function getReport(id: number) {

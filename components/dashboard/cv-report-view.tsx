@@ -9,10 +9,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   Briefcase,
+  Building2,
   CheckCircle2,
   Copy,
   GraduationCap,
+  Info,
   Loader2,
   RefreshCw,
   Sparkles,
@@ -205,6 +215,53 @@ export function CvReportView({
                     </div>
                   </div>
                 </div>
+
+                <Dialog>
+                  <DialogTrigger
+                    render={
+                      <Button variant="outline" size="sm" className="mt-4" />
+                    }
+                  >
+                    <Info className="size-3.5" />
+                    View role &amp; companies hiring
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>{role.title}</DialogTitle>
+                      <DialogDescription>
+                        {fmt(role.salaryLow, role.currency)} –{' '}
+                        {fmt(role.salaryHigh, role.currency)} · {role.matchScore}%
+                        match
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-semibold">
+                          About this role
+                        </h4>
+                        <p className="mt-1.5 text-pretty text-sm leading-relaxed text-muted-foreground">
+                          {role.description}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="flex items-center gap-1.5 text-sm font-semibold">
+                          <Building2 className="size-4 text-primary" />
+                          Companies hiring for this
+                        </h4>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {role.companies?.map((c) => (
+                            <span
+                              key={c}
+                              className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </Card>
             )
           })}
