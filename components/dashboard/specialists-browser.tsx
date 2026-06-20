@@ -109,7 +109,9 @@ export function SpecialistsBrowser({
         <section>
           <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Users className="size-4" />
-            {results.length} result{results.length === 1 ? '' : 's'} for
+            {`${results.length} ${
+              results.length === 1 ? 'result' : 'results'
+            } for `}
             &ldquo;{query}&rdquo;
           </h2>
           {results.length === 0 ? (

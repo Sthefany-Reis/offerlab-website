@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -113,12 +114,23 @@ export function DashboardNav({
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="flex flex-col">
-              <span className="truncate">{name || 'Your account'}</span>
-              <span className="truncate text-xs font-normal text-muted-foreground">
-                {email}
-              </span>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="flex flex-col">
+                <span className="truncate">{name || 'Your account'}</span>
+                <span className="truncate text-xs font-normal text-muted-foreground">
+                  {email}
+                </span>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/dashboard/profile" />}>
+              <UserRound className="size-4" />
+              Profile &amp; settings
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/dashboard/history" />}>
+              <History className="size-4" />
+              CV history
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="size-4" />

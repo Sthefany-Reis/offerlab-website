@@ -98,7 +98,8 @@ function ApplicationRow({ item }: { item: ApplicationWithJob }) {
   const [isPending, startTransition] = useTransition()
   const salary = fmtSalary(item.salaryLow, item.salaryHigh, item.currency)
 
-  function onStatusChange(next: string) {
+  function onStatusChange(next: string | null) {
+    if (!next) return
     setStatus(next as ApplicationStatus)
     startTransition(async () => {
       await updateApplicationStatus(item.id, next as ApplicationStatus)
