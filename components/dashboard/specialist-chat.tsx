@@ -4,13 +4,13 @@ import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import Link from 'next/link'
-import { ArrowLeft, Send, Loader2 } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Zap, Sparkles, Lock } from 'lucide-react'
 import { LinkedinIcon } from '@/components/icons/linkedin-icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Specialist } from '@/lib/specialists'
+import type { WeeklyUsage } from '@/app/actions/subscription'
 
 function specialistInitials(name: string) {
   return name
@@ -26,8 +26,15 @@ function messageText(parts: { type: string; text?: string }[]) {
     .join('')
 }
 
-export function SpecialistChat({ specialist }: { specialist: Specialist }) {
+export function SpecialistChat({
+  specialist,
+  usage,
+}: {
+  specialist: Specialist
+  usage: WeeklyUsage
+}) {
   const [input, setInput] = useState('')
+  const [remaining, setRemaining] = useState(usage.remaining)
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/specialist-chat',
@@ -35,9 +42,14 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
         body: { messages, specialistId: specialist.id },
       }),
     }),
+    onError: () => {
+      // The server rejects once the weekly limit is hit; reflect that here.
+      if (!usage.unlimited) setRemaining(0)
+    },
   })
   const scrollRef = useRef<HTMLDivElement>(null)
   const busy = status === 'streaming' || status === 'submitted'
+  const limitReached = !usage.unlimited && remaining <= 0
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -46,10 +58,15 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
     })
   }, [messages])
 
+  function send(text: string) {
+    if (!text.trim() || busy || limitReached) return
+    sendMessage({ text })
+    if (!usage.unlimited) setRemaining((n) => Math.max(0, n - 1))
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || busy) return
-    sendMessage({ text: input })
+    send(input)
     setInput('')
   }
 
@@ -94,6 +111,45 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
         </Button>
       </div>
 
+      {/* Usage / plan banner */}
+      {usage.unlimited ? (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground">
+          <Zap className="size-4 shrink-0" />
+          <span>
+            <span className="font-semibold">Pro plan</span> — unlimited
+            specialist questions.
+          </span>
+        </div>
+      ) : (
+        <div
+          className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-4 py-2 text-sm ${
+            limitReached
+              ? 'border-destructive/30 bg-destructive/10 text-destructive'
+              : 'border-border bg-secondary/60 text-muted-foreground'
+          }`}
+        >
+          <span>
+            {limitReached ? (
+              <>You&apos;ve used all {usage.limit} free questions this week.</>
+            ) : (
+              <>
+                <span className="font-medium text-foreground">
+                  {remaining} of {usage.limit}
+                </span>{' '}
+                free specialist questions left this week.
+              </>
+            )}
+          </span>
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-1 font-medium text-accent underline-offset-2 hover:underline"
+          >
+            <Sparkles className="size-3.5" />
+            Upgrade for unlimited
+          </Link>
+        </div>
+      )}
+
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto py-6">
         {messages.length === 0 && (
@@ -116,8 +172,9 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
               {starters.map((s) => (
                 <button
                   key={s}
-                  onClick={() => sendMessage({ text: s })}
-                  className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  onClick={() => send(s)}
+                  disabled={limitReached}
+                  className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {s}
                 </button>
@@ -154,24 +211,41 @@ export function SpecialistChat({ specialist }: { specialist: Specialist }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={onSubmit} className="border-t py-4">
-        <div className="flex items-center gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={`Message ${specialist.name.split(' ')[0]}…`}
-            disabled={busy}
-          />
-          <Button type="submit" size="icon" disabled={busy || !input.trim()}>
-            <Send className="size-4" />
-            <span className="sr-only">Send</span>
-          </Button>
+      {limitReached ? (
+        <div className="border-t py-4">
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-secondary/40 px-4 py-5 text-center">
+            <p className="text-sm text-muted-foreground">
+              You&apos;ve reached your {usage.limit} free specialist questions
+              for this week.
+            </p>
+            <Button asChild>
+              <Link href="/dashboard/billing">
+                <Lock className="size-4" />
+                Upgrade to Pro for unlimited
+              </Link>
+            </Button>
+          </div>
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          AI specialist responses are guidance only. Connect on LinkedIn to
-          reach {specialist.name.split(' ')[0]} directly.
-        </p>
-      </form>
+      ) : (
+        <form onSubmit={onSubmit} className="border-t py-4">
+          <div className="flex items-center gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={`Message ${specialist.name.split(' ')[0]}…`}
+              disabled={busy}
+            />
+            <Button type="submit" size="icon" disabled={busy || !input.trim()}>
+              <Send className="size-4" />
+              <span className="sr-only">Send</span>
+            </Button>
+          </div>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            AI specialist responses are guidance only. Connect on LinkedIn to
+            reach {specialist.name.split(' ')[0]} directly.
+          </p>
+        </form>
+      )}
     </div>
   )
 }

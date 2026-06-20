@@ -101,10 +101,11 @@ export function CvAnalyze({ usage }: { usage: AnalysisUsage }) {
     <Card className="p-6">
       {/* Usage / plan banner */}
       {usage.unlimited ? (
-        <div className="mb-5 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-4 py-2.5 text-sm text-accent-foreground">
-          <Zap className="size-4 shrink-0 text-accent" />
+        <div className="mb-5 flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm text-accent-foreground">
+          <Zap className="size-4 shrink-0" />
           <span>
-            <span className="font-medium">Pro plan</span> — unlimited CV analyses.
+            <span className="font-semibold">Pro plan</span> — unlimited CV
+            analyses.
           </span>
         </div>
       ) : (

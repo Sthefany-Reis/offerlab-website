@@ -1,9 +1,15 @@
-import { getJobs } from '@/app/actions/jobs'
+import { getJobs, getLatestCvText } from '@/app/actions/jobs'
 import { getLatestReport } from '@/app/actions/cv-report'
+import { hasActiveSubscription } from '@/app/actions/subscription'
 import { JobSearch } from '@/components/dashboard/job-search'
 
 export default async function JobsPage() {
-  const [jobs, report] = await Promise.all([getJobs(), getLatestReport()])
+  const [jobs, report, initialCv, isPro] = await Promise.all([
+    getJobs(),
+    getLatestReport(),
+    getLatestCvText(),
+    hasActiveSubscription(),
+  ])
 
   return (
     <div>
@@ -14,7 +20,12 @@ export default async function JobsPage() {
         </p>
       </div>
 
-      <JobSearch initialJobs={jobs} hasCv={!!report} />
+      <JobSearch
+        initialJobs={jobs}
+        hasCv={!!report}
+        initialCv={initialCv}
+        isPro={isPro}
+      />
     </div>
   )
 }

@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import {
   Sparkles,
   RefreshCw,
   Lightbulb,
   CheckCircle2,
   MessageSquareText,
+  Zap,
+  Lock,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,6 +22,7 @@ import {
   type InterviewQuestion,
   type InterviewAnswer,
 } from '@/app/actions/interview'
+import type { WeeklyUsage } from '@/app/actions/subscription'
 
 const categoryStyles: Record<string, string> = {
   behavioral: 'bg-primary/15 text-primary border-primary/30',
@@ -33,15 +37,18 @@ function scoreTone(score: number) {
   return 'text-destructive'
 }
 
-export function InterviewPractice() {
+export function InterviewPractice({ usage }: { usage: WeeklyUsage }) {
   const [role, setRole] = useState('')
   const [question, setQuestion] = useState<InterviewQuestion | null>(null)
   const [asked, setAsked] = useState<string[]>([])
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState<InterviewAnswer | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [remaining, setRemaining] = useState(usage.remaining)
   const [loadingQuestion, startQuestion] = useTransition()
   const [evaluating, startEval] = useTransition()
+
+  const limitReached = !usage.unlimited && remaining <= 0
 
   function nextQuestion() {
     setError(null)
@@ -55,6 +62,7 @@ export function InterviewPractice() {
       }
       setQuestion(res.question)
       setAsked((prev) => [...prev, res.question.question])
+      if (!usage.unlimited) setRemaining((n) => Math.max(0, n - 1))
     })
   }
 
@@ -73,6 +81,45 @@ export function InterviewPractice() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Usage / plan banner */}
+      {usage.unlimited ? (
+        <div className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm text-accent-foreground">
+          <Zap className="size-4 shrink-0" />
+          <span>
+            <span className="font-semibold">Pro plan</span> — unlimited
+            interview questions.
+          </span>
+        </div>
+      ) : (
+        <div
+          className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-4 py-2.5 text-sm ${
+            limitReached
+              ? 'border-destructive/30 bg-destructive/10 text-destructive'
+              : 'border-border bg-secondary/60 text-muted-foreground'
+          }`}
+        >
+          <span>
+            {limitReached ? (
+              <>You&apos;ve used all {usage.limit} free questions this week.</>
+            ) : (
+              <>
+                <span className="font-medium text-foreground">
+                  {remaining} of {usage.limit}
+                </span>{' '}
+                free interview questions left this week.
+              </>
+            )}
+          </span>
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center gap-1 font-medium text-accent underline-offset-2 hover:underline"
+          >
+            <Sparkles className="size-3.5" />
+            Upgrade for unlimited
+          </Link>
+        </div>
+      )}
+
       {/* Role selector */}
       <Card className="p-5">
         <label
@@ -93,19 +140,31 @@ export function InterviewPractice() {
             placeholder="e.g. Senior Product Manager"
             className="flex-1"
           />
-          <Button onClick={nextQuestion} disabled={loadingQuestion || !role.trim()}>
-            {loadingQuestion ? (
-              <>
-                <RefreshCw className="size-4 animate-spin" />
-                Generating…
-              </>
-            ) : (
-              <>
-                <Sparkles className="size-4" />
-                {question ? 'New question' : 'Start practicing'}
-              </>
-            )}
-          </Button>
+          {limitReached ? (
+            <Button asChild>
+              <Link href="/dashboard/billing">
+                <Lock className="size-4" />
+                Upgrade to continue
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              onClick={nextQuestion}
+              disabled={loadingQuestion || !role.trim()}
+            >
+              {loadingQuestion ? (
+                <>
+                  <RefreshCw className="size-4 animate-spin" />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="size-4" />
+                  {question ? 'New question' : 'Start practicing'}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </Card>
 
@@ -229,10 +288,23 @@ export function InterviewPractice() {
             </ul>
           </div>
 
-          <Button onClick={nextQuestion} variant="outline" disabled={loadingQuestion}>
-            <Sparkles className="size-4" />
-            Next question
-          </Button>
+          {limitReached ? (
+            <Button asChild variant="outline">
+              <Link href="/dashboard/billing">
+                <Lock className="size-4" />
+                Upgrade for more questions
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              onClick={nextQuestion}
+              variant="outline"
+              disabled={loadingQuestion}
+            >
+              <Sparkles className="size-4" />
+              Next question
+            </Button>
+          )}
         </Card>
       )}
     </div>
