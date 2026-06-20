@@ -4,17 +4,17 @@ const steps = [
   {
     icon: Upload,
     title: 'Upload your CV',
-    desc: 'Paste your CV text or drop in a PDF. Add a target role if you have one in mind.',
+    desc: 'Paste your CV or drop in a PDF, DOCX, or image. Add a dream role if you have one in mind.',
   },
   {
     icon: Sparkles,
-    title: 'Get your analysis',
-    desc: 'OfferLab estimates your market value, maps your skill gaps, and builds your roadmap in seconds.',
+    title: 'See where you stand',
+    desc: 'OfferLab detects your best-fit roles, scores how well you match, and maps the gaps to your dream role in seconds.',
   },
   {
     icon: Rocket,
-    title: 'Apply and interview',
-    desc: 'Use tailored applications and predicted interview questions to land the offer.',
+    title: 'Apply, prep, and land',
+    desc: 'Apply to tailored openings in one click, rehearse with real interview questions, and turn the application into an offer.',
   },
 ]
 

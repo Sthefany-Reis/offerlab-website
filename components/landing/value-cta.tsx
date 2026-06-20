@@ -52,7 +52,7 @@ export function CtaFooter() {
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="rounded-2xl bg-primary px-6 py-14 text-center text-primary-foreground sm:px-12">
           <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-            Your next offer starts with one upload
+            Turn your next application into an offer
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-pretty leading-relaxed text-primary-foreground/80">
             Create a free account and get your full career analysis in seconds.

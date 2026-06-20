@@ -11,9 +11,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'OfferLab — Land your next role with AI',
+  title: 'OfferLab — Where applications become offers',
   description:
-    'Upload your CV and get a market-value estimate, missing-skills analysis, a personalized learning roadmap, tailored applications, and interview prep — all in one place.',
+    'OfferLab turns one CV into your entire job hunt: discover the roles you qualify for, apply in one click, practice interviews, and get coached all the way to the offer.',
   generator: 'v0.app',
   icons: {
     icon: '/offerlab-mark.png',

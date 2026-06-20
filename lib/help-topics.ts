@@ -130,6 +130,17 @@ const TOPICS: { match: string; topic: HelpTopic }[] = [
   },
 ]
 
+const HOME_TOPIC: HelpTopic = {
+  label: 'Welcome to OfferLab',
+  context:
+    'This is the OfferLab landing page for visitors. OfferLab is an AI-powered job-hunting platform whose motto is "Where applications become offers." It turns one CV into your entire job hunt. Core features: Analyze CV (detect best-fit roles, match scores, skill gaps, CV-quality assessment, and a path to your dream role), Find Jobs (AI-generated openings tailored to your profile, comparable to LinkedIn and Indeed), Applications (apply in one click and track every status), Interview Practice (role-tailored questions with model answers and feedback), and Specialists (chat with AI career experts). It is free to start — visitors create an account, then upload or paste their CV to get a full analysis in seconds. Common questions: what OfferLab does, how it works, whether it is free, how to get started, and whether their data is safe (the platform analyzes the CV they provide and is not affiliated with any employer).',
+  starters: [
+    'What is OfferLab?',
+    'How does it work?',
+    'Is it free to get started?',
+  ],
+}
+
 const DEFAULT_TOPIC: HelpTopic = {
   label: 'OfferLab',
   context:
@@ -141,6 +152,9 @@ const DEFAULT_TOPIC: HelpTopic = {
 }
 
 export function getHelpTopic(pathname: string): HelpTopic {
+  // The landing page lives at the root and is public-facing, so it gets its
+  // own welcome-oriented context instead of matching a dashboard route.
+  if (pathname === '/') return HOME_TOPIC
   const found = TOPICS.find((t) => pathname.startsWith(t.match))
   return found?.topic ?? DEFAULT_TOPIC
 }

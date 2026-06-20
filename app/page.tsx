@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/hero'
 import { Features } from '@/components/landing/features'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { MarketValue, CtaFooter } from '@/components/landing/value-cta'
+import { HelpBot } from '@/components/dashboard/help-bot'
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -20,6 +21,7 @@ export default async function HomePage() {
         <MarketValue />
         <CtaFooter />
       </main>
+      <HelpBot />
     </div>
   )
 }
