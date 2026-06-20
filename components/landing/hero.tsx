@@ -13,12 +13,12 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
             AI career copilot
           </span>
           <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            Turn your CV into your next offer
+            Search, qualify, and land your next role
           </h1>
           <p className="mt-5 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-            Upload your CV and get a market-value estimate, a missing-skills
-            breakdown, a personalized learning roadmap, tailored applications, and
-            interview prep — in one place.
+            Analyze your CV to see the jobs you qualify for, get a clear path to
+            the role you actually want, search and apply to openings, practice
+            interviews, and chat with career specialists — all in one place.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -34,7 +34,7 @@ export function Hero({ signedIn }: { signedIn: boolean }) {
           </div>
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            {['Market-value estimate', 'Skill gap analysis', 'Interview prep'].map(
+            {['Jobs you qualify for', 'Apply & track', 'Interview practice'].map(
               (item) => (
                 <li key={item} className="flex items-center gap-2">
                   <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />

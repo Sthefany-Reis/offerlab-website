@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { analyzeCv } from '@/app/actions/analysis'
+import { analyzeCv } from '@/app/actions/cv-report'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,12 +26,12 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
-export function CvIntake() {
+export function CvAnalyze() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [cvText, setCvText] = useState('')
-  const [targetRole, setTargetRole] = useState('')
+  const [desiredRole, setDesiredRole] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [extracting, setExtracting] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -39,7 +39,6 @@ export function CvIntake() {
   async function handleFile(file: File) {
     setFileName(file.name)
 
-    // Plain text files: read directly in the browser.
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       const text = await file.text()
       setCvText(text)
@@ -79,14 +78,14 @@ export function CvIntake() {
       return
     }
     setAnalyzing(true)
-    const res = await analyzeCv({ cvText, targetRole })
+    const res = await analyzeCv({ cvText, desiredRole })
     if ('error' in res) {
       toast.error(res.error)
       setAnalyzing(false)
       return
     }
-    toast.success('Analysis ready.')
-    router.push(`/dashboard/analysis/${res.id}`)
+    toast.success('Your CV analysis is ready.')
+    router.push('/dashboard')
     router.refresh()
   }
 
@@ -94,16 +93,20 @@ export function CvIntake() {
     <Card className="p-6">
       <div className="mb-5">
         <Label htmlFor="role" className="text-sm">
-          Target role <span className="text-muted-foreground">(optional)</span>
+          The role you want next{' '}
+          <span className="text-muted-foreground">(optional)</span>
         </Label>
         <Input
           id="role"
-          value={targetRole}
-          onChange={(e) => setTargetRole(e.target.value)}
-          placeholder="e.g. Senior Product Designer"
+          value={desiredRole}
+          onChange={(e) => setDesiredRole(e.target.value)}
+          placeholder="e.g. Senior Data Scientist"
           className="mt-2"
           disabled={analyzing}
         />
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          We&apos;ll show the certifications and skills you need to qualify for it.
+        </p>
       </div>
 
       <Tabs defaultValue="paste">

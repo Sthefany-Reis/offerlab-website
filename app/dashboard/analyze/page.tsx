@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { CvIntake } from '@/components/dashboard/cv-intake'
+import { CvAnalyze } from '@/components/dashboard/cv-analyze'
 
-export default function NewAnalysisPage() {
+export default function AnalyzePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <Link
@@ -14,14 +14,14 @@ export default function NewAnalysisPage() {
       </Link>
 
       <div className="mt-4 mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">New CV analysis</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Analyze your CV</h1>
         <p className="mt-1 text-pretty text-muted-foreground">
-          Paste your CV or upload a file. Add a target role for sharper, more
-          tailored results.
+          Paste your CV or upload a file. Tell us the role you want next for a
+          tailored qualification path.
         </p>
       </div>
 
-      <CvIntake />
+      <CvAnalyze />
     </div>
   )
 }

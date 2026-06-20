@@ -5,6 +5,7 @@ import {
   boolean,
   serial,
   jsonb,
+  integer,
 } from 'drizzle-orm/pg-core'
 
 // --- Better Auth required tables -------------------------------------------
@@ -62,20 +63,52 @@ export const verification = pgTable('verification', {
 
 // --- App tables ------------------------------------------------------------
 
-// Stores a full CV analysis: the input CV text + target role, plus the
-// AI-generated result (market value, skill gaps, roadmap, applications,
-// interview prep) as a JSON blob.
-export const analyses = pgTable('analyses', {
+// Stores a full CV analysis: the input CV text + optional desired role, plus
+// the AI-generated result (detected role, qualified jobs, skill gaps,
+// desired-role gap plan, CV quality assessment) as a JSON blob.
+export const cvReports = pgTable('cv_reports', {
   id: serial('id').primaryKey(),
   userId: text('userId').notNull(),
-  title: text('title').notNull(),
-  targetRole: text('targetRole'),
   cvText: text('cvText').notNull(),
+  desiredRole: text('desiredRole'),
   result: jsonb('result').notNull(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
-export type AnalysisRow = typeof analyses.$inferSelect
+// AI-generated job listings, scoped per user and tied to a search query.
+export const jobs = pgTable('jobs', {
+  id: serial('id').primaryKey(),
+  userId: text('userId').notNull(),
+  title: text('title').notNull(),
+  company: text('company').notNull(),
+  location: text('location').notNull(),
+  workMode: text('workMode').notNull(),
+  employmentType: text('employmentType').notNull(),
+  salaryLow: integer('salaryLow'),
+  salaryHigh: integer('salaryHigh'),
+  currency: text('currency').notNull().default('USD'),
+  summary: text('summary').notNull(),
+  requirements: jsonb('requirements').notNull(),
+  niceToHaves: jsonb('niceToHaves').notNull(),
+  matchScore: integer('matchScore').notNull().default(0),
+  searchQuery: text('searchQuery'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
+
+// Tracks a user's application to a job, with a status pipeline.
+export const applications = pgTable('applications', {
+  id: serial('id').primaryKey(),
+  userId: text('userId').notNull(),
+  jobId: integer('jobId').notNull(),
+  status: text('status').notNull().default('applied'),
+  note: text('note'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+})
+
+export type CvReportRow = typeof cvReports.$inferSelect
+export type JobRow = typeof jobs.$inferSelect
+export type ApplicationRow = typeof applications.$inferSelect
 
 // --- Reference (unused) ----------------------------------------------------
 // Add your app tables below. Always include a plain `userId` column so queries

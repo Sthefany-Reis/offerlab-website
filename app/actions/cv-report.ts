@@ -1,0 +1,160 @@
+'use server'
+
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { cvReports } from '@/lib/db/schema'
+import { cvReportSchema, type CvReport } from '@/lib/cv-report-schema'
+import { generateText, Output } from 'ai'
+import { and, desc, eq } from 'drizzle-orm'
+import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+
+async function getUserId() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) throw new Error('Unauthorized')
+  return session.user.id
+}
+
+const SYSTEM_PROMPT = `You are OfferLab, an elite career strategist. You are given the raw text of a candidate's CV and, optionally, the role they WANT to land next.
+
+Produce a rigorous, honest, genuinely useful analysis:
+- "qualifiedRoles": the roles the candidate can realistically get hired for RIGHT NOW based on their CV, scored by match and with realistic annual base salary ranges for their region (infer it; default to the United States in USD).
+- "skillGaps": concrete skills the candidate should improve, prioritized.
+- "desiredRolePlan": compare where the CV best fits ("bestFitRole") with the role the candidate wants ("desiredRole"). If no desired role was given, infer the most ambitious realistic next role and use that. Set "isMismatch" true when the CV is currently better suited to a different role than the one they want. Give the exact certifications (real, named) and skills needed to qualify for the DESIRED role.
+- "cvQuality": an honest review of how well the CV is written and structured. Set "needsRedesign" true when the CV is poorly organized, vague, or weak so it should be regenerated.
+
+Be specific and grounded in what the CV actually says. Never invent experience.`
+
+export async function analyzeCv(input: {
+  cvText: string
+  desiredRole?: string
+}): Promise<{ id: number } | { error: string }> {
+  const userId = await getUserId()
+
+  const cvText = input.cvText.trim()
+  if (cvText.length < 80) {
+    return {
+      error:
+        'That CV looks too short to analyze. Please paste your full CV or upload a complete document.',
+    }
+  }
+
+  const desiredRole = input.desiredRole?.trim()
+
+  try {
+    const { output } = await generateText({
+      model: 'openai/gpt-5-mini',
+      output: Output.object({ schema: cvReportSchema }),
+      system: SYSTEM_PROMPT,
+      prompt: `${
+        desiredRole
+          ? `The role the candidate WANTS to land next: "${desiredRole}".`
+          : 'No specific desired role was provided — infer the most ambitious realistic next role from the CV.'
+      }
+
+CV / RESUME TEXT:
+"""
+${cvText.slice(0, 16000)}
+"""
+
+Analyze this candidate and return the structured result.`,
+    })
+
+    const result = output as CvReport
+
+    const [row] = await db
+      .insert(cvReports)
+      .values({
+        userId,
+        cvText,
+        desiredRole: desiredRole ?? null,
+        result,
+      })
+      .returning({ id: cvReports.id })
+
+    revalidatePath('/dashboard')
+    return { id: row.id }
+  } catch (err) {
+    console.log('[v0] analyzeCv error:', err instanceof Error ? err.message : err)
+    return {
+      error:
+        'We could not complete the analysis right now. Please try again in a moment.',
+    }
+  }
+}
+
+export async function getLatestReport() {
+  const userId = await getUserId()
+  const [row] = await db
+    .select()
+    .from(cvReports)
+    .where(eq(cvReports.userId, userId))
+    .orderBy(desc(cvReports.createdAt))
+    .limit(1)
+  return row ?? null
+}
+
+export async function getReport(id: number) {
+  const userId = await getUserId()
+  const [row] = await db
+    .select()
+    .from(cvReports)
+    .where(and(eq(cvReports.id, id), eq(cvReports.userId, userId)))
+    .limit(1)
+  return row ?? null
+}
+
+export async function deleteReport(id: number) {
+  const userId = await getUserId()
+  await db
+    .delete(cvReports)
+    .where(and(eq(cvReports.id, id), eq(cvReports.userId, userId)))
+  revalidatePath('/dashboard')
+}
+
+// Regenerate a clean, well-structured CV from the candidate's existing
+// information. Returns Markdown text.
+export async function regenerateCv(
+  reportId: number,
+): Promise<{ cv: string } | { error: string }> {
+  const userId = await getUserId()
+
+  const [row] = await db
+    .select()
+    .from(cvReports)
+    .where(and(eq(cvReports.id, reportId), eq(cvReports.userId, userId)))
+    .limit(1)
+
+  if (!row) return { error: 'Report not found.' }
+
+  const report = row.result as CvReport
+
+  try {
+    const { text } = await generateText({
+      model: 'openai/gpt-5-mini',
+      system: `You are an expert CV writer. Rewrite the candidate's CV into a clean, well-structured, ATS-friendly resume in Markdown.
+
+Rules:
+- Use only information present in the original CV. Do not invent jobs, dates, or metrics.
+- Use clear sections: a header with name and contact (use placeholders like [email] only if missing), a punchy professional summary, Experience (with concise achievement bullets that start with strong verbs), Skills, and Education.
+- Tighten weak or vague language; quantify achievements only where the original implies numbers.
+- Keep it concise and scannable. Return ONLY the Markdown, no commentary.`,
+      prompt: `Candidate target/best-fit role: ${report.desiredRolePlan?.desiredRole ?? report.detectedRole}
+
+ORIGINAL CV TEXT:
+"""
+${row.cvText.slice(0, 16000)}
+"""
+
+Rewrite it as a polished Markdown CV.`,
+    })
+
+    return { cv: text }
+  } catch (err) {
+    console.log(
+      '[v0] regenerateCv error:',
+      err instanceof Error ? err.message : err,
+    )
+    return { error: 'Could not regenerate the CV right now. Please try again.' }
+  }
+}

@@ -1,37 +1,43 @@
 import {
-  Briefcase,
+  Search,
   MessagesSquare,
   FileText,
   Target,
   GraduationCap,
+  Users,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 const tools = [
   {
-    icon: Briefcase,
-    title: 'AI Job Hunter',
-    desc: 'Surfaces the roles you should be targeting and scores how well you match each one today.',
-  },
-  {
     icon: FileText,
-    title: 'CV Optimizer',
-    desc: 'Reads your CV, finds what is dragging it down, and rewrites tailored summaries for each role.',
+    title: 'CV Analyzer',
+    desc: 'Reads your CV and shows exactly which roles you qualify for today, scored by match.',
   },
   {
     icon: Target,
-    title: 'Skill Gap Analyzer',
-    desc: 'Pinpoints the exact skills standing between you and your target role, ranked by impact.',
+    title: 'Path to Your Dream Role',
+    desc: 'Wanting a role your CV does not fit yet? Get the certifications and skills to qualify.',
   },
   {
     icon: GraduationCap,
-    title: 'Learning Coach',
-    desc: 'Turns those gaps into a sequenced, week-by-week roadmap with concrete resources.',
+    title: 'CV Regenerator',
+    desc: 'If your CV is holding you back, regenerate a clean, well-structured version from your info.',
+  },
+  {
+    icon: Search,
+    title: 'Search & Apply',
+    desc: 'Search openings tailored to your profile and apply in one click, with every application tracked.',
   },
   {
     icon: MessagesSquare,
-    title: 'Interview Coach',
-    desc: 'Predicts the questions you will face and drills strong, tailored answers with you.',
+    title: 'Interview Practice',
+    desc: 'Answer realistic questions and get the most successful, tailored response for your target career.',
+  },
+  {
+    icon: Users,
+    title: 'Specialist Chat',
+    desc: 'Chat with AI career specialists and connect with them on LinkedIn when you are ready.',
   },
 ]
 
@@ -39,14 +45,14 @@ export function Features() {
   return (
     <section id="features" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
       <div className="max-w-2xl">
-        <p className="text-sm font-medium text-primary">Five tools, one upload</p>
+        <p className="text-sm font-medium text-primary">One platform, six tools</p>
         <h2 className="mt-2 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
           Everything you need to go from CV to offer
         </h2>
         <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
-          OfferLab reads your CV once and runs five specialized career engines on
-          it, so every recommendation is consistent and grounded in your real
-          experience.
+          OfferLab reads your CV once and runs your entire job hunt from it —
+          matching roles, closing skill gaps, applying, and prepping you for the
+          interview, all grounded in your real experience.
         </p>
       </div>
 
