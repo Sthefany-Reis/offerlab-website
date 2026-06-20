@@ -11,11 +11,14 @@ function fmt(n: number, currency: string) {
 export function MarketValueCard({ result }: { result: AnalysisResult }) {
   const mv = result.marketValue
   // Position the median marker within the low-high range.
-  const span = Math.max(mv.high - mv.low, 1)
-  const medianPct = Math.min(
-    98,
-    Math.max(2, ((mv.median - mv.low) / span) * 100),
-  )
+  // Scale the bar to include the upside potential so growth is visible.
+  const scaleMax = Math.max(mv.high, mv.potentialMedian)
+  const span = Math.max(scaleMax - mv.low, 1)
+  const pct = (v: number) =>
+    Math.min(98, Math.max(2, ((v - mv.low) / span) * 100))
+  const medianPct = pct(mv.median)
+  const potentialPct = pct(mv.potentialMedian)
+  const highPct = pct(mv.high)
 
   return (
     <Card className="p-6">
@@ -44,15 +47,38 @@ export function MarketValueCard({ result }: { result: AnalysisResult }) {
 
       <div className="mt-6">
         <div className="relative h-2 rounded-full bg-secondary">
+          {/* Current market range: low → high */}
+          <div
+            className="absolute inset-y-0 rounded-full bg-primary/70"
+            style={{ left: 0, width: `${highPct}%` }}
+            aria-hidden="true"
+          />
+          {/* Upside: high → potential */}
+          <div
+            className="absolute inset-y-0 rounded-full bg-success/70"
+            style={{ left: `${highPct}%`, width: `${potentialPct - highPct}%` }}
+            aria-hidden="true"
+          />
+          {/* Median marker */}
           <div
             className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary shadow"
             style={{ left: `${medianPct}%` }}
             aria-hidden="true"
           />
+          {/* Potential marker */}
+          <div
+            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-success shadow"
+            style={{ left: `${potentialPct}%` }}
+            aria-hidden="true"
+          />
         </div>
-        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-          <span>{fmt(mv.low, mv.currency)}</span>
-          <span>{fmt(mv.high, mv.currency)}</span>
+        <div className="mt-2 flex justify-between text-xs">
+          <span className="text-muted-foreground">
+            {fmt(mv.low, mv.currency)}
+          </span>
+          <span className="font-medium text-success">
+            {fmt(mv.potentialMedian, mv.currency)} potential
+          </span>
         </div>
       </div>
 

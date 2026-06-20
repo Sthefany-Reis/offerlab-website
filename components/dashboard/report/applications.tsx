@@ -5,9 +5,14 @@ import { toast } from 'sonner'
 import type { AnalysisResult } from '@/lib/analysis-schema'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Check, Copy } from 'lucide-react'
+
+function matchTone(score: number) {
+  if (score >= 80) return { bar: 'bg-success', text: 'text-success' }
+  if (score >= 60) return { bar: 'bg-primary', text: 'text-primary' }
+  return { bar: 'bg-warning', text: 'text-warning' }
+}
 
 export function Applications({ result }: { result: AnalysisResult }) {
   const [copied, setCopied] = useState<number | null>(null)
@@ -32,9 +37,16 @@ export function Applications({ result }: { result: AnalysisResult }) {
             <div className="w-36">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Match</span>
-                <span className="font-medium">{app.matchScore}%</span>
+                <span className={`font-semibold ${matchTone(app.matchScore).text}`}>
+                  {app.matchScore}%
+                </span>
               </div>
-              <Progress value={app.matchScore} className="mt-1.5 h-2" />
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`h-full rounded-full transition-all ${matchTone(app.matchScore).bar}`}
+                  style={{ width: `${app.matchScore}%` }}
+                />
+              </div>
             </div>
           </div>
 
