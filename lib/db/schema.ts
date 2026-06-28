@@ -75,7 +75,8 @@ export const cvReports = pgTable('cv_reports', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
-// AI-generated job listings, scoped per user and tied to a search query.
+// Real job listings found via live web search, scoped per user and tied to a
+// search query. `applyUrl`/`source`/`postedText` point to the real posting.
 export const jobs = pgTable('jobs', {
   id: serial('id').primaryKey(),
   userId: text('userId').notNull(),
@@ -92,6 +93,9 @@ export const jobs = pgTable('jobs', {
   niceToHaves: jsonb('niceToHaves').notNull(),
   matchScore: integer('matchScore').notNull().default(0),
   searchQuery: text('searchQuery'),
+  applyUrl: text('applyUrl'),
+  source: text('source'),
+  postedText: text('postedText'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })
 
