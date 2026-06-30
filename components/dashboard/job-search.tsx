@@ -76,7 +76,7 @@ export function JobSearch({
       return
     }
     startTransition(() => router.refresh())
-    toast.success('Found matching roles.')
+    toast.success('Found real, currently-open roles.')
   }
 
   return (
@@ -152,8 +152,8 @@ export function JobSearch({
           </div>
           <h2 className="mt-5 text-lg font-semibold">Search for openings</h2>
           <p className="mt-2 max-w-sm text-pretty text-sm text-muted-foreground">
-            Enter a role above to generate matching job postings tailored to your
-            profile.
+            Enter a role above and we&apos;ll search the live web for real,
+            currently-open positions and score how well you match each one.
           </p>
         </Card>
       ) : (
@@ -193,6 +193,14 @@ export function JobSearch({
                       <Badge variant="secondary" className="capitalize">
                         {job.employmentType}
                       </Badge>
+                      {job.postedText && (
+                        <span className="text-xs text-muted-foreground">
+                          {job.postedText}
+                        </span>
+                      )}
+                      {job.source && (
+                        <Badge variant="outline">via {job.source}</Badge>
+                      )}
                     </div>
                   </div>
                   <div className="shrink-0">
@@ -258,33 +266,53 @@ export function JobSearch({
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-                  <span className="text-xs text-muted-foreground">
-                    Compare this role on:
-                  </span>
-                  <Button asChild variant="outline" size="sm">
-                    <a
-                      href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
-                        `${job.title} ${job.company}`,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <LinkedinIcon className="size-3.5" />
-                      LinkedIn
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <a
-                      href={`https://www.indeed.com/jobs?q=${encodeURIComponent(
-                        `${job.title} ${job.company}`,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      Indeed
-                    </a>
-                  </Button>
+                  {job.applyUrl ? (
+                    <>
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={job.applyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          View original posting
+                        </a>
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Opens the live listing in a new tab
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        Find this role on:
+                      </span>
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+                            `${job.title} ${job.company}`,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <LinkedinIcon className="size-3.5" />
+                          LinkedIn
+                        </a>
+                      </Button>
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={`https://www.indeed.com/jobs?q=${encodeURIComponent(
+                            `${job.title} ${job.company}`,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Indeed
+                        </a>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </Card>
             )

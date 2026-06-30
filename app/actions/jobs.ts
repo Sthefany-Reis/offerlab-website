@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { jobs, applications, cvReports } from '@/lib/db/schema'
 import { jobSearchSchema, type GeneratedJob } from '@/lib/cv-report-schema'
+import { researchWeb } from '@/lib/web-research'
 import { generateText, Output } from 'ai'
 import { and, desc, eq, notInArray } from 'drizzle-orm'
 import { headers } from 'next/headers'
@@ -32,25 +33,59 @@ export async function searchJobs(input: {
     .orderBy(desc(cvReports.createdAt))
     .limit(1)
 
+  const locationText = input.location?.trim()
+  const workMode =
+    input.workMode && input.workMode !== 'any' ? input.workMode : undefined
+
   try {
+    // 1) Live web search for REAL, currently-open positions, with citations.
+    const research = await researchWeb(
+      `Find currently open, real job postings for "${query}"${
+        locationText ? ` in ${locationText}` : ''
+      }${workMode ? ` (${workMode} roles)` : ''}.
+Search job boards and company career pages (LinkedIn, Indeed, Greenhouse, Lever, Ashby, company sites).
+For each opening, report: exact job title, the real hiring company, location, work mode, employment type, salary range if listed, a short summary, key requirements, and how recently it was posted.
+Only include real, verifiable openings that appear to be active right now. Prefer the most recently posted roles. Provide the direct application URLs.`,
+    )
+
+    if (research.sources.length === 0) {
+      return {
+        error:
+          'No live job postings found for that search right now. Try a broader role or location.',
+      }
+    }
+
+    const sourceList = research.sources
+      .map((s, i) => `${i + 1}. ${s.title} — ${s.url}`)
+      .join('\n')
+
+    // 2) Structure the real findings into typed listings, scored vs. the CV.
     const { output } = await generateText({
       model: 'openai/gpt-5-mini',
       output: Output.object({ schema: jobSearchSchema }),
-      system: `You are a job board aggregator that surfaces realistic openings comparable to those found on LinkedIn and Indeed. Generate realistic, varied, currently-plausible job postings that match the user's search. Use realistic but fictional company names. Salaries should be realistic for the role and location. ${
+      system: `You convert real, web-sourced job listings into structured data. Use ONLY the openings described in the research below — never invent companies or roles. Each job's "applyUrl" MUST be copied verbatim from the provided source URLs (pick the most specific posting link). If a salary is not stated, set salaryLow and salaryHigh to 0. ${
         report
           ? 'A candidate CV is provided: set each job\'s "matchScore" (0-100) based on how well this candidate fits that specific posting.'
           : 'No CV is provided: set every "matchScore" to 0.'
       }`,
       prompt: `Search query: "${query}"
-${input.location ? `Preferred location: ${input.location}` : ''}
-${input.workMode && input.workMode !== 'any' ? `Preferred work mode: ${input.workMode}` : ''}
+${locationText ? `Preferred location: ${locationText}` : ''}
+${workMode ? `Preferred work mode: ${workMode}` : ''}
+
+WEB RESEARCH (real, current openings):
+"""
+${research.text}
+"""
+
+SOURCE URLS (use these exact links for applyUrl):
+${sourceList}
 ${
   report
     ? `\nCANDIDATE CV:\n"""\n${report.cvText.slice(0, 8000)}\n"""`
     : ''
 }
 
-Generate a diverse set of matching job postings.`,
+Return the real postings as structured jobs.`,
     })
 
     const generated = (output as { jobs: GeneratedJob[] }).jobs
@@ -90,6 +125,9 @@ Generate a diverse set of matching job postings.`,
           niceToHaves: j.niceToHaves,
           matchScore: j.matchScore,
           searchQuery: query,
+          applyUrl: j.applyUrl || null,
+          source: j.source || null,
+          postedText: j.postedText || null,
         })),
       )
     }

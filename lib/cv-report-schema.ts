@@ -140,13 +140,21 @@ export type CvQuality = z.infer<typeof cvQualitySchema>
 // --- Job search ------------------------------------------------------------
 
 export const generatedJobSchema = z.object({
-  title: z.string(),
-  company: z.string().describe('A realistic but fictional company name'),
+  title: z.string().describe('The exact job title from the real posting'),
+  company: z
+    .string()
+    .describe('The real company hiring for this position'),
   location: z.string().describe('City, Country or "Remote"'),
   workMode: z.enum(['remote', 'hybrid', 'onsite']),
   employmentType: z.enum(['full-time', 'part-time', 'contract', 'internship']),
-  salaryLow: z.number().int(),
-  salaryHigh: z.number().int(),
+  salaryLow: z
+    .number()
+    .int()
+    .describe('Lower bound annual base salary; 0 if not stated in the posting'),
+  salaryHigh: z
+    .number()
+    .int()
+    .describe('Upper bound annual base salary; 0 if not stated in the posting'),
   currency: z.string().describe('Currency code, e.g. USD'),
   summary: z
     .string()
@@ -169,10 +177,21 @@ export const generatedJobSchema = z.object({
     .describe(
       'If a CV was provided, how well the candidate matches; otherwise 0',
     ),
+  applyUrl: z
+    .string()
+    .describe(
+      'The real, working URL to the live job posting or company application page. Must be one of the provided source URLs.',
+    ),
+  source: z
+    .string()
+    .describe('Where the listing was found, e.g. LinkedIn, Indeed, company site'),
+  postedText: z
+    .string()
+    .describe('How recently it was posted, e.g. "2 days ago", or "" if unknown'),
 })
 
 export const jobSearchSchema = z.object({
-  jobs: z.array(generatedJobSchema).min(4).max(8),
+  jobs: z.array(generatedJobSchema).min(1).max(8),
 })
 
 export type GeneratedJob = z.infer<typeof generatedJobSchema>
