@@ -13,6 +13,7 @@ import {
   getAnalysisUsage,
   hasActiveSubscription,
 } from '@/app/actions/subscription'
+import { researchWeb } from '@/lib/web-research'
 import { generateText, Output } from 'ai'
 import { and, desc, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
@@ -177,25 +178,40 @@ export async function regenerateCv(
   if (!row) return { error: 'Report not found.' }
 
   const report = row.result as CvReport
+  const targetRole =
+    report.desiredRolePlan?.desiredRole ?? report.detectedRole
 
   try {
+    // Research what employers are currently looking for in this role so the
+    // rewrite is optimized against the real market, not just tidied up.
+    const research = await researchWeb(
+      `What are hiring managers and recruiters looking for in ${targetRole} candidates in ${new Date().getFullYear()}?
+Cover: the most in-demand hard and soft skills, tools and technologies, keywords that pass ATS screening for this role, how top resumes are structured, and the achievements/metrics that stand out. Base this on current job postings and recruiter guidance.`,
+    )
+
     const { text } = await generateText({
       model: 'openai/gpt-5-mini',
-      system: `You are an expert CV writer. Rewrite the candidate's CV into a clean, well-structured, ATS-friendly resume in Markdown.
+      system: `You are an expert CV writer and recruiter. Rewrite the candidate's CV into a clean, well-structured, ATS-friendly resume in Markdown that is optimized for what employers are looking for RIGHT NOW.
 
 Rules:
 - Use only information present in the original CV. Do not invent jobs, dates, or metrics.
-- Use clear sections: a header with name and contact (use placeholders like [email] only if missing), a punchy professional summary, Experience (with concise achievement bullets that start with strong verbs), Skills, and Education.
+- Use the MARKET RESEARCH to decide what to emphasize, how to phrase achievements, and which real keywords/skills (that the candidate genuinely has) to surface for ATS. Never claim skills the candidate doesn't have.
+- Use clear sections: a header with name and contact (use placeholders like [email] only if missing), a punchy professional summary tuned to the target role, Experience (with concise achievement bullets that start with strong verbs), Skills, and Education.
 - Tighten weak or vague language; quantify achievements only where the original implies numbers.
 - Keep it concise and scannable. Return ONLY the Markdown, no commentary.`,
-      prompt: `Candidate target/best-fit role: ${report.desiredRolePlan?.desiredRole ?? report.detectedRole}
+      prompt: `Candidate target/best-fit role: ${targetRole}
+
+WHAT EMPLOYERS CURRENTLY WANT FOR THIS ROLE (market research):
+"""
+${research.text}
+"""
 
 ORIGINAL CV TEXT:
 """
 ${row.cvText.slice(0, 16000)}
 """
 
-Rewrite it as a polished Markdown CV.`,
+Rewrite it as a polished, market-optimized Markdown CV.`,
     })
 
     return { cv: text }

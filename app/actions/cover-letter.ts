@@ -8,6 +8,7 @@ import {
   coverLetterRatingSchema,
   type CoverLetterRating,
 } from '@/lib/cover-letter-schema'
+import { researchWeb } from '@/lib/web-research'
 import { generateText, Output } from 'ai'
 import { and, desc, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
@@ -98,12 +99,28 @@ export async function generateCoverLetter(
   const tone = input.tone ?? 'professional'
 
   try {
+    // Research what employers and this company value for this role so the
+    // letter emphasizes the most relevant strengths.
+    const research = await researchWeb(
+      `What do hiring managers look for when hiring a ${job.title}${
+        job.company && job.company !== 'the company'
+          ? ` at ${job.company}`
+          : ''
+      }?
+Cover: the most valued skills and qualities for this role, what ${job.company} is known to care about (culture, priorities, tech/products) if identifiable, and what makes a cover letter stand out for this kind of position.`,
+    )
+
     const { text } = await generateText({
       model: 'openai/gpt-5-mini',
-      system: `You are OfferLab, an expert career writer. Write a tailored, compelling cover letter grounded ONLY in the candidate's real CV. Never invent experience, employers, or metrics that aren't supported by the CV. Keep it to 3-4 short paragraphs, specific to the target role and company, and written in a ${tone} tone. Return ONLY the cover letter body text — no placeholders like [Your Name], no markdown, no preamble.`,
+      system: `You are OfferLab, an expert career writer. Write a tailored, compelling cover letter grounded ONLY in the candidate's real CV. Never invent experience, employers, or metrics that aren't supported by the CV. Use the MARKET RESEARCH to choose which of the candidate's real strengths to emphasize and to align the message with what employers value for this role — but do not claim anything the CV doesn't support. Keep it to 3-4 short paragraphs, specific to the target role and company, and written in a ${tone} tone. Return ONLY the cover letter body text — no placeholders like [Your Name], no markdown, no preamble.`,
       prompt: `TARGET ROLE: ${job.title}
 COMPANY: ${job.company}
 ${job.description ? `ROLE DETAILS:\n${job.description}\n` : ''}
+WHAT EMPLOYERS VALUE FOR THIS ROLE (market research):
+"""
+${research.text}
+"""
+
 CANDIDATE CV:
 """
 ${cvText.slice(0, 16000)}
